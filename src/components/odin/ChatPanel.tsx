@@ -5,6 +5,10 @@ import { ChatMessage, useChatStore } from '@/store/useChatStore'
 import {
   GlassPanel, FadeInMessage, TypewriterText, ThinkingOverlay, CYAN, AMBER,
 } from '@/components/OdinCore'
+import JarvisHologram from '@/components/JarvisHologram'
+import { useOdinTTS } from '@/hooks/useOdinTTS'
+import { useSpeechStore } from '@/store/useSpeechStore'
+import { motion } from 'framer-motion'
 
 function formatTime(d: Date): string {
   return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
@@ -105,8 +109,11 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
 export default function ChatPanel() {
   const messages = useChatStore((s) => s.messages)
   const isLoading = useChatStore((s) => s.isLoading)
+  const isSpeaking = useSpeechStore((s) => s.isSpeaking)
   const bottomRef = useRef<HTMLDivElement>(null)
   const [latestOdinId, setLatestOdinId] = useState<string | null>(null)
+
+  useOdinTTS()
 
   const lastOdinMsg = [...messages].reverse().find((m) => m.role === 'odin')
 
@@ -121,21 +128,28 @@ export default function ChatPanel() {
   }, [messages, isLoading])
 
   return (
-    <GlassPanel glow className="flex flex-col h-full overflow-hidden relative">
+    <GlassPanel glow className="flex flex-col h-full overflow-hidden relative rounded-sm border-0">
+      {/* 발화 중 상태 바 */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 h-0.5 pointer-events-none z-20"
+        style={{ background: CYAN }}
+        animate={{ opacity: isSpeaking ? [0.5, 1, 0.5] : 0 }}
+        transition={{ duration: 0.8, repeat: isSpeaking ? Infinity : 0 }}
+      />
       {/* 헤더 */}
       <div
-        className="flex items-center gap-2 px-3 py-1.5 border-b border-white/10 flex-shrink-0 backdrop-blur-md"
-        style={{ boxShadow: `inset 0 -1px 0 ${CYAN}15` }}
+        className="relative z-10 flex items-center gap-2 px-3 py-2 border-b flex-shrink-0"
+        style={{
+          borderColor: 'rgba(59,130,246,0.25)',
+          background: 'linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08), rgba(20,184,166,0.06))',
+        }}
       >
         <Terminal className="w-3 h-3" style={{ color: CYAN }} />
-        <span
-          className="text-[8px] font-mono font-semibold uppercase tracking-widest"
-          style={{ color: CYAN, textShadow: `0 0 8px ${CYAN}40` }}
-        >
-          ODIN Terminal
+        <span className="text-[8px] font-mono font-bold uppercase tracking-widest" style={{ color: CYAN }}>
+          INTERACTION LOG
         </span>
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[8px] font-mono text-white/30">{messages.length} entries</span>
+          <span className="text-[8px] font-mono text-white/55 font-semibold">{messages.length} ENTRIES</span>
           <div className="flex gap-0.5">
             {['#22c55e', CYAN, AMBER].map((c, i) => (
               <span key={i} className="w-1.5 h-1.5 rounded-sm" style={{ background: c, opacity: 0.7 }} />
@@ -144,9 +158,14 @@ export default function ChatPanel() {
         </div>
       </div>
 
+      {/* 자비스 홀로그램 비주얼라이저 */}
+      <div className="relative z-10">
+        <JarvisHologram />
+      </div>
+
       {/* 로그 영역 */}
       <div
-        className="flex-1 overflow-y-auto relative"
+        className="relative z-10 flex-1 overflow-y-auto"
         style={{
           backgroundImage:
             'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.015) 2px, rgba(0,240,255,0.015) 4px)',

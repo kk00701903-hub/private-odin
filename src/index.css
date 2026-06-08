@@ -78,32 +78,32 @@
 }
 
 .dark {
-  --background: oklch(0.06 0.015 200);
-  --foreground: oklch(0.92 0.02 200);
-  --card: oklch(0.12 0.025 200);
-  --card-foreground: oklch(0.90 0.025 200);
-  --popover: oklch(0.10 0.02 200);
-  --popover-foreground: oklch(0.92 0.02 200);
-  --primary: oklch(0.65 0.26 200);
-  --primary-foreground: oklch(0.08 0.015 200);
-  --secondary: oklch(0.20 0.03 200);
-  --secondary-foreground: oklch(0.88 0.025 200);
-  --muted: oklch(0.18 0.025 200);
-  --muted-foreground: oklch(0.58 0.02 200);
-  --accent: oklch(0.72 0.20 45);
-  --accent-foreground: oklch(0.10 0.015 45);
+  --background: oklch(0.08 0.02 265);
+  --foreground: oklch(0.94 0.01 265);
+  --card: oklch(0.14 0.03 265);
+  --card-foreground: oklch(0.92 0.02 265);
+  --popover: oklch(0.12 0.025 265);
+  --popover-foreground: oklch(0.94 0.01 265);
+  --primary: oklch(0.72 0.18 195);
+  --primary-foreground: oklch(0.08 0.02 265);
+  --secondary: oklch(0.22 0.04 265);
+  --secondary-foreground: oklch(0.90 0.02 265);
+  --muted: oklch(0.20 0.03 265);
+  --muted-foreground: oklch(0.62 0.02 265);
+  --accent: oklch(0.70 0.20 330);
+  --accent-foreground: oklch(0.98 0.01 330);
   --destructive: oklch(0.62 0.28 10);
   --destructive-foreground: oklch(0.95 0.01 10);
-  --border: oklch(0.25 0.04 200);
-  --input: oklch(0.22 0.035 200);
-  --ring: oklch(0.65 0.26 200);
+  --border: oklch(0.28 0.05 265);
+  --input: oklch(0.24 0.04 265);
+  --ring: oklch(0.65 0.22 195);
   
-  /* Chart Tokens */
-  --chart-1: oklch(0.65 0.26 200);
-  --chart-2: oklch(0.72 0.20 45);
-  --chart-3: oklch(0.68 0.24 150);
-  --chart-4: oklch(0.70 0.24 280);
-  --chart-5: oklch(0.66 0.26 320);
+  /* Chart Tokens — AI 멀티컬러 */
+  --chart-1: oklch(0.72 0.18 195);
+  --chart-2: oklch(0.68 0.22 300);
+  --chart-3: oklch(0.70 0.18 165);
+  --chart-4: oklch(0.72 0.20 330);
+  --chart-5: oklch(0.75 0.18 85);
   
   /* Sidebar Tokens */
   --sidebar: oklch(0.08 0.018 200);
@@ -231,11 +231,118 @@
   .glow-amber {
     box-shadow: 0 0 24px -6px rgba(255, 183, 0, 0.4);
   }
+
+  .jarvis-hex-grid {
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%2300F0FF' fill-opacity='0.55'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .jarvis-border-glow {
+    box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.35);
+  }
+
+  .jarvis-text-glow {
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  }
+
+  /* AI 앱급 영역 프레임 */
+  .odin-zone {
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    background: linear-gradient(165deg, rgba(18, 21, 31, 0.97) 0%, rgba(11, 13, 23, 0.98) 100%);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .odin-zone-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 15;
+  }
+
+  .odin-zone--sys { border-color: rgba(139, 92, 246, 0.35); }
+  .odin-zone--terminal { border-color: rgba(59, 130, 246, 0.35); }
+  .odin-zone--cmd { border-color: rgba(20, 184, 166, 0.35); }
+  .odin-zone--infra { border-color: rgba(168, 85, 247, 0.35); }
+  .odin-zone--alert { border-color: rgba(255, 183, 0, 0.35); }
+
+  .odin-zone-body {
+    padding-top: 10px;
+  }
+
+  .odin-zone.h-full,
+  .odin-zone.h-full .odin-zone-body {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .odin-zone.h-full .odin-zone-body > * {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .odin-zone-label {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    padding: 2px 10px;
+    font-size: 7px;
+    font-family: JetBrains Mono, ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #12151f, #0b0d17);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .odin-panel {
+    background: linear-gradient(180deg, rgba(26, 30, 46, 0.6) 0%, rgba(18, 21, 31, 0.95) 100%);
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .odin-ai-gradient-text {
+    background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 35%, #8b5cf6 65%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .odin-ai-shield {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(59, 130, 246, 0.2), rgba(0, 240, 255, 0.15));
+    border: 1px solid rgba(139, 92, 246, 0.4);
+  }
+
+  .odin-metric-cell {
+    margin: 0 4px;
+    padding: 3px 4px;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    background: rgba(5, 5, 10, 0.95);
+    border-radius: 1px;
+  }
+
+  .odin-perimeter-border {
+    box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.12);
+  }
+}
+
+@keyframes jarvis-pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.05); opacity: 0.8; }
 }
 
 /* 데스크톱에서 모바일 프레임 중앙 정렬 */
 @media (min-width: 431px) {
   body {
-    background: #020208;
+    background: linear-gradient(135deg, #07080f 0%, #0f0a1a 50%, #07080f 100%);
   }
 }

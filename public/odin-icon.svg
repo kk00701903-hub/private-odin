@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Odin Project">
+  <defs>
+    <radialGradient id="aura" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#05050A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="#05050A"/>
+  <circle cx="256" cy="256" r="220" fill="url(#aura)"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#00F0FF" stroke-width="4" stroke-opacity="0.25"/>
+  <circle cx="256" cy="256" r="155" fill="none" stroke="#00F0FF" stroke-width="2" stroke-opacity="0.15" stroke-dasharray="18 22"/>
+
+  <path
+    d="M256 96 L360 152 V300 C360 360 320 404 256 432 C192 404 152 360 152 300 V152 Z"
+    fill="rgba(0,240,255,0.07)"
+    stroke="#00F0FF"
+    stroke-width="10"
+    filter="url(#neon)"
+  />
+
+  <ellipse cx="256" cy="268" rx="72" ry="88" fill="none" stroke="#00F0FF" stroke-width="18" filter="url(#neon)"/>
+  <circle cx="256" cy="268" r="18" fill="#00F0FF" filter="url(#neon)"/>
+  <circle cx="256" cy="118" r="14" fill="#00F0FF"/>
+</svg>

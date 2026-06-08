@@ -4,12 +4,47 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff } from 'lucide-react'
 import { springPresets } from '@/lib/motion'
 
-/* ── 디자인 토큰 ── */
-export const CYAN = '#00F0FF'
-export const AMBER = '#FFB700'
-export const OBSIDIAN = '#05050A'
+import { ZONE_THEME, AI_PALETTE, type ZoneVariant } from '@/lib/odinTheme'
+import AuroraBackground from '@/components/AuroraBackground'
 
-/* ── 글래스 패널 ── */
+/* ── 디자인 토큰 ── */
+export const CYAN = AI_PALETTE.cyan
+export const AMBER = AI_PALETTE.amber
+export const OBSIDIAN = AI_PALETTE.obsidian
+
+/* ── 전문 HUD 영역 프레임 ── */
+export function ZoneFrame({
+  children,
+  label,
+  sublabel,
+  className = '',
+  variant = 'terminal',
+}: {
+  children: React.ReactNode
+  label: string
+  sublabel?: string
+  className?: string
+  variant?: ZoneVariant
+}) {
+  const theme = ZONE_THEME[variant]
+  return (
+    <div className={`relative odin-zone ${theme.className} ${className}`}>
+      <div className="odin-zone-accent-bar" style={{ background: theme.gradient }} />
+      <div className="odin-zone-label" style={{ color: theme.accent }}>
+        <span className="font-bold">{label}</span>
+        {sublabel && (
+          <>
+            <span className="text-white/40 mx-1">│</span>
+            <span style={{ color: theme.accent2 }}>{sublabel}</span>
+          </>
+        )}
+      </div>
+      <div className="odin-zone-body">{children}</div>
+    </div>
+  )
+}
+
+/* ── 패널 (선명한 영역 배경) ── */
 export function GlassPanel({
   children,
   className = '',
@@ -24,11 +59,14 @@ export function GlassPanel({
   const color = amber ? AMBER : CYAN
   return (
     <div
-      className={`backdrop-blur-md bg-white/5 border border-white/10 rounded-xl ${className}`}
+      className={`odin-panel border rounded-sm ${className}`}
       style={
         glow
-          ? { boxShadow: `0 0 24px -6px ${color}40, inset 0 1px 0 rgba(255,255,255,0.06)` }
-          : { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }
+          ? {
+              borderColor: `${color}45`,
+              boxShadow: `inset 0 0 0 1px ${color}20, 0 0 12px ${color}18`,
+            }
+          : undefined
       }
     >
       {children}
@@ -352,19 +390,15 @@ export function HoverGlowCard({
   const glowColor = amber ? AMBER : CYAN
   return (
     <motion.div
-      className={`backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden ${className}`}
+      className={`border rounded-sm overflow-hidden bg-[#0c0e16] ${className}`}
       whileHover={{
-        y: -4,
-        borderColor: `${glowColor}80`,
-        boxShadow: `0 8px 32px -8px ${glowColor}50, 0 0 0 1px ${glowColor}30`,
+        borderColor: `${glowColor}70`,
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.99 }}
       transition={springPresets.snappy}
       style={{
-        boxShadow: active
-          ? `0 0 20px -4px ${glowColor}40, inset 0 1px 0 rgba(255,255,255,0.05)`
-          : 'inset 0 1px 0 rgba(255,255,255,0.05)',
-        borderColor: active ? `${glowColor}40` : undefined,
+        borderColor: active ? `${glowColor}55` : `${glowColor}30`,
+        boxShadow: active ? `inset 0 0 0 1px ${glowColor}25` : undefined,
       }}
     >
       {children}
@@ -372,44 +406,7 @@ export function HoverGlowCard({
   )
 }
 
-/* ── 심해 배경 ── */
+/* ── AI 오로라 배경 ── */
 export function ObsidianBackground() {
-  return (
-    <>
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{ background: OBSIDIAN }}
-      />
-      {/* 격자 */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `
-            linear-gradient(${CYAN}20 1px, transparent 1px),
-            linear-gradient(90deg, ${CYAN}20 1px, transparent 1px)
-          `,
-          backgroundSize: '32px 32px',
-        }}
-      />
-      {/* 방사형 그라데이션 */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          background: `
-            radial-gradient(ellipse 90% 50% at 50% -10%, ${CYAN}12 0%, transparent 55%),
-            radial-gradient(ellipse 60% 40% at 80% 90%, ${AMBER}06 0%, transparent 50%),
-            radial-gradient(ellipse 50% 30% at 10% 70%, #1a0a2e40 0%, transparent 50%)
-          `,
-        }}
-      />
-      {/* 스캔라인 */}
-      <div
-        className="pointer-events-none fixed inset-0 z-50 opacity-[0.018]"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,240,255,0.5) 3px, rgba(0,240,255,0.5) 4px)',
-        }}
-      />
-    </>
-  )
+  return <AuroraBackground />
 }

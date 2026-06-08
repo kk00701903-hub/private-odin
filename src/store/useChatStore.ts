@@ -48,6 +48,18 @@ interface ChatStore {
 
 const generateId = () => `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
+/** 데모 응답 — 웹훅 미설정 시 특정 입력에 맞춘 오딘 답변 */
+const DEMO_RESPONSES: Record<string, string> = {
+  '반갑습니다, 석사님. 오딘 사령탑이 정상 가동 중입니다.':
+    '반갑습니다, 석사님. 오딘 사령탑이 정상 가동 중입니다. 모든 시스템이 nominal 상태이며, 명령을 대기하고 있습니다.',
+}
+
+function resolveDemoResponse(input: string): string | null {
+  const trimmed = input.trim()
+  if (DEMO_RESPONSES[trimmed]) return DEMO_RESPONSES[trimmed]
+  return null
+}
+
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: generateId(),
@@ -166,9 +178,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         const data = await res.json()
         odinContent = data?.output ?? data?.message ?? '[ 응답을 파싱하지 못했습니다 ]'
       } else {
-        // 웹훅 미설정 시 로컬 에코 응답
+        // 웹훅 미설정 시 데모/에코 응답
         await new Promise((r) => setTimeout(r, 800))
-        odinContent = `[ WEBHOOK UNSET ]\n"${content}" 명령을 수신했습니다. VITE_N8N_WEBHOOK_URL 환경 변수를 설정하면 실제 오딘 AI와 연결됩니다.`
+        const demo = resolveDemoResponse(content)
+        odinContent =
+          demo ??
+          `[ WEBHOOK UNSET ]\n"${content}" 명령을 수신했습니다. VITE_N8N_WEBHOOK_URL 환경 변수를 설정하면 실제 오딘 AI와 연결됩니다.`
       }
 
       const odinMsg: ChatMessage = {

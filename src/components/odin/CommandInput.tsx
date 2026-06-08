@@ -41,18 +41,12 @@ export default function CommandInput() {
 
   return (
     <motion.div
-      className="relative rounded-full border border-white/15 backdrop-blur-xl bg-white/[0.07] overflow-hidden"
+      className="relative overflow-hidden"
       style={{
-        boxShadow: isListening
-          ? `0 0 32px -4px ${AMBER}50, 0 8px 32px rgba(0,0,0,0.4)`
-          : `0 0 20px -6px ${CYAN}25, 0 8px 32px rgba(0,0,0,0.4)`,
+        background: 'linear-gradient(180deg, rgba(20,184,166,0.08) 0%, rgba(18,21,31,0.98) 100%)',
+        borderTop: `1px solid ${isListening ? AMBER : '#14B8A6'}40`,
+        boxShadow: isListening ? `inset 0 2px 0 ${AMBER}30` : 'inset 0 2px 0 rgba(20,184,166,0.2)',
       }}
-      animate={
-        isListening
-          ? { borderColor: `${AMBER}40` }
-          : { borderColor: 'rgba(255,255,255,0.15)' }
-      }
-      transition={{ duration: 0.3 }}
     >
       {/* 상단 상태 인디케이터 */}
       <div className="flex items-center justify-between px-4 pt-1.5 pb-0">
@@ -66,8 +60,8 @@ export default function CommandInput() {
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
-          <span className="text-[7px] font-mono text-white/35 uppercase tracking-widest">
-            {isListening ? 'VOICE CAPTURE' : 'CMD INPUT'}
+          <span className="text-[7px] font-mono text-white/60 uppercase tracking-widest font-semibold">
+            {isListening ? 'VOICE CAPTURE' : 'AWAITING COMMAND'}
           </span>
         </div>
         <button
@@ -116,7 +110,7 @@ export default function CommandInput() {
         <motion.button
           onClick={handleSend}
           disabled={!canSend}
-          className="flex-shrink-0 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center backdrop-blur-md bg-white/5 disabled:opacity-30"
+          className="flex-shrink-0 w-10 h-10 rounded-sm border flex items-center justify-center bg-[#0c0e16] disabled:opacity-30"
           whileTap={canSend ? { scale: 0.92 } : {}}
           style={
             canSend

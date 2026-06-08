@@ -61,6 +61,7 @@ temp/
 .rts2_cache_umd/
 .vite/
 .vite-inspect/
+dev-dist/
 
 # --- TypeScript ---
 *.tsbuildinfo

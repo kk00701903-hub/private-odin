@@ -13,7 +13,10 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <div className="min-h-screen flex justify-center" style={{ background: '#020208' }}>
+      <div
+        className="min-h-screen flex justify-center"
+        style={{ background: 'linear-gradient(160deg, #07080f 0%, #120a1f 40%, #0a1020 100%)' }}
+      >
         <HashRouter>
           <Routes>
             <Route path="/" element={<Index />} />

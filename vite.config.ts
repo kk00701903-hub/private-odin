@@ -2,6 +2,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'node:fs/promises';
 import nodePath from 'node:path';
 import { componentTagger } from 'lovable-tagger';
@@ -207,7 +208,10 @@ function cdnPrefixImages(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+
   return {
+    base: isGitHubPages ? '/private-odin/' : '/',
     server: {
       host: "::",
       port: 8080,
@@ -215,6 +219,51 @@ export default defineConfig(({ mode }) => {
     plugins: [
       tailwindcss(),
       react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'odin-icon.svg', 'robots.txt'],
+        manifest: {
+          name: 'Odin Project',
+          short_name: 'Odin',
+          description: 'Omniscient Defense Intelligence Network — AI Command Interface',
+          theme_color: '#0B0D17',
+          background_color: '#0B0D17',
+          display: 'standalone',
+          orientation: 'portrait-primary',
+          start_url: './',
+          scope: './',
+          lang: 'ko',
+          categories: ['productivity', 'utilities'],
+          icons: [
+            {
+              src: 'odin-icon.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'any',
+            },
+            {
+              src: 'odin-icon.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'maskable',
+            },
+            {
+              src: 'favicon.svg',
+              sizes: '64x64',
+              type: 'image/svg+xml',
+              purpose: 'any',
+            },
+          ],
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+          navigateFallback: 'index.html',
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        },
+        devOptions: {
+          enabled: true,
+        },
+      }),
       mode === 'development' &&
       componentTagger(),
       cdnPrefixImages(),
