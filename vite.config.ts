@@ -215,6 +215,18 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      proxy: {
+        '/prometheus': {
+          target: process.env.VITE_PROMETHEUS_URL || 'http://10.179.93.101:9090',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/prometheus/, ''),
+        },
+        '/api/chat-archive': {
+          target: process.env.VITE_CHAT_ARCHIVE_URL || 'http://127.0.0.1:8787',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/chat-archive/, ''),
+        },
+      },
     },
     plugins: [
       tailwindcss(),

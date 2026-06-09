@@ -26,7 +26,8 @@ export const PROXMOX_NODE = {
 }
 
 export const VM_LIST: VmInfo[] = [
-  { id: 101, name: 'ubuntu-nas',   role: 'NAS / CasaOS',      status: 'running', cpu: 12, mem: 3.1,  memMax: 4,  uptime: '14d 7h' },
+  { id: 100, name: 'homelab-100',  role: 'Homelab Gateway',   status: 'running', cpu: 8,  mem: 1.2,  memMax: 4,  uptime: '14d 7h' },
+  { id: 101, name: 'ubuntu-nas',   role: 'Prometheus / CLI',  status: 'running', cpu: 12, mem: 3.1,  memMax: 4,  uptime: '14d 7h' },
   { id: 102, name: 'ai-core',      role: 'Ollama + Dify',     status: 'running', cpu: 34, mem: 17.2, memMax: 20, uptime: '6d 2h'  },
   { id: 103, name: 'win11-cursor', role: 'Windows 11 / Cursor', status: 'stopped', cpu: 0,  mem: 0,    memMax: 8,  uptime: '—'     },
 ]

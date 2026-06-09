@@ -100,3 +100,6 @@ Thumbs.db
 # --- Uploaded Files ---
 uploaded_files/
 
+# --- Chat archive logs (서버 일자별 저장) ---
+data/chat-logs/
+

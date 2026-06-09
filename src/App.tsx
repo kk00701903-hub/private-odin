@@ -14,7 +14,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <div
-        className="min-h-screen flex justify-center"
+        className="min-h-[100dvh] min-h-[100svh] flex justify-center"
         style={{ background: 'linear-gradient(160deg, #07080f 0%, #120a1f 40%, #0a1020 100%)' }}
       >
         <HashRouter>

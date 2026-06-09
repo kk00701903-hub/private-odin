@@ -1,103 +1,134 @@
-// @section: chat-panel
+// @section: chat-panel — VOICE ASSISTANT 통합 카드
 import { useEffect, useRef, useState } from 'react'
-import { Bot, ChevronRight, Terminal, User } from 'lucide-react'
-import { ChatMessage, useChatStore } from '@/store/useChatStore'
+import { Bot, User } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ChatMessage, useChatStore, type ChatCategory } from '@/store/useChatStore'
 import {
-  GlassPanel, FadeInMessage, TypewriterText, ThinkingOverlay, CYAN, AMBER,
+  JarvisCard, JarvisCardHeader, BreathingDot,
+  FadeInMessage, TypewriterText, ThinkingOverlay, CYAN, AMBER, VIOLET,
 } from '@/components/OdinCore'
 import JarvisHologram from '@/components/JarvisHologram'
+import OdinWakeOverlay from '@/components/OdinWakeOverlay'
+import CommandInput from '@/components/odin/CommandInput'
 import { useOdinTTS } from '@/hooks/useOdinTTS'
+import { useChatArchiveSync } from '@/hooks/useChatArchiveSync'
+import { useWakeWordListener } from '@/hooks/useWakeWordListener'
 import { useSpeechStore } from '@/store/useSpeechStore'
-import { motion } from 'framer-motion'
+import { useOdinWakeStore } from '@/store/useOdinWakeStore'
+import { useHoloAnimStore } from '@/store/useHoloAnimStore'
+import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
+import { typingSpeedMsFromLevel } from '@/lib/odinAssistantSpeed'
+import { AI_PALETTE } from '@/lib/odinTheme'
 
-function formatTime(d: Date): string {
-  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+function formatTime(d: Date) {
+  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
+/* ── 구분선 메시지 ── */
 function SystemLine({ msg }: { msg: ChatMessage }) {
   return (
     <FadeInMessage>
-      <div className="flex items-center gap-2 py-1 px-2">
-        <div className="flex-1 h-px bg-white/10" />
-        <span className="text-[8px] font-mono text-white/35 tracking-widest uppercase px-2">
+      <div className="flex items-center gap-2 py-1.5 px-3">
+        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        <span className="text-[10px] font-mono text-white/22 tracking-[0.16em] uppercase px-2 flex-shrink-0">
           {msg.content}
         </span>
-        <div className="flex-1 h-px bg-white/10" />
+        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
       </div>
     </FadeInMessage>
   )
 }
 
+/* ── 사용자 메시지 (우측, 파란 버블) ── */
 function UserMessage({ msg }: { msg: ChatMessage }) {
   return (
     <FadeInMessage>
-      <div className="flex items-start gap-2 py-1.5 px-2 justify-end">
-        <div className="flex flex-col items-end gap-0.5 max-w-[82%]">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[8px] font-mono text-white/30">{formatTime(msg.timestamp)}</span>
-            <span className="text-[8px] font-mono text-white/50 uppercase">YOU</span>
-          </div>
-          <div
-            className="rounded-xl rounded-tr-sm px-2.5 py-1.5 backdrop-blur-md bg-white/5 border border-white/10"
-            style={{ boxShadow: `0 2px 12px -4px ${CYAN}20` }}
-          >
-            <p className="text-xs font-mono text-white/85 whitespace-pre-wrap leading-relaxed">
+      <div className="flex items-end justify-end gap-1.5 py-1 px-3">
+        <div className="flex flex-col items-end gap-0.5 min-w-0" style={{ maxWidth: 'calc(100% - 40px)' }}>
+          <span className="text-[10px] font-mono text-white/22 flex-shrink-0">
+            {formatTime(msg.timestamp)}
+          </span>
+          <div className="jarvis-bubble-user min-w-0">
+            <p className="text-[12px] font-sans text-white/90 leading-snug break-words">
               {msg.content}
             </p>
           </div>
         </div>
-        <div className="w-6 h-6 rounded-md border border-white/10 bg-white/5 flex items-center justify-center flex-shrink-0 mt-3">
-          <User className="w-3 h-3 text-white/40" />
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-end mb-0.5"
+          style={{ background: 'rgba(61,142,255,0.15)', border: '1px solid rgba(61,142,255,0.25)' }}
+        >
+          <User className="w-3 h-3" style={{ color: AI_PALETTE.blue }} />
         </div>
       </div>
     </FadeInMessage>
   )
 }
 
+/* ── Odin 메시지 (좌측, 보라 버블) ── */
 function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean }) {
-  const isError = msg.status === 'error'
+  const typingSpeedLevel = useOdinSettingsStore((s) => s.typingSpeedLevel)
+  const typingSpeedMs = typingSpeedMsFromLevel(typingSpeedLevel)
+  const isError   = msg.status === 'error'
   const isWarning = msg.content.includes('⚠')
-  const glowColor = isError ? '#ef4444' : isWarning ? AMBER : CYAN
+  const accent    = isError ? '#FF6B7A' : isWarning ? AMBER : CYAN
 
   return (
     <FadeInMessage>
-      <div className="flex items-start gap-2 py-1.5 px-2">
+      <div className="flex items-end gap-1.5 py-1 px-3">
         <div
-          className="w-6 h-6 rounded-md border flex items-center justify-center flex-shrink-0 mt-3 backdrop-blur-md bg-white/5"
-          style={{ borderColor: `${glowColor}40`, boxShadow: `0 0 8px ${glowColor}30` }}
+          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-end mb-0.5"
+          style={{
+            background: `${accent}15`,
+            border: `1px solid ${accent}28`,
+            boxShadow: `0 0 8px ${accent}15`,
+          }}
         >
-          <Bot className="w-3 h-3" style={{ color: glowColor }} />
+          <Bot className="w-3 h-3" style={{ color: accent }} />
         </div>
-        <div className="flex flex-col gap-0.5 max-w-[85%]">
+        <div className="flex flex-col gap-0.5 min-w-0" style={{ maxWidth: 'calc(100% - 40px)' }}>
           <div className="flex items-center gap-1.5">
-            <span className="text-[8px] font-mono uppercase tracking-wider font-semibold" style={{ color: glowColor }}>
+            <span
+              className="text-[9px] font-mono font-bold uppercase tracking-[0.18em]"
+              style={{ color: accent }}
+            >
               ODIN
             </span>
-            <span className="text-[8px] font-mono text-white/30">{formatTime(msg.timestamp)}</span>
+            <span className="text-[10px] font-mono text-white/20">
+              {formatTime(msg.timestamp)}
+            </span>
           </div>
           <div
-            className="rounded-xl rounded-tl-sm border px-2.5 py-2 backdrop-blur-md bg-white/5"
-            style={{
-              borderColor: `${glowColor}25`,
-              boxShadow: `0 2px 16px -4px ${glowColor}25`,
-            }}
+            className="jarvis-bubble-odin min-w-0"
+            style={
+              isError
+                ? {
+                    background: 'linear-gradient(145deg, rgba(255,107,122,0.22) 0%, rgba(180,50,70,0.14) 100%)',
+                    borderColor: 'rgba(255,107,122,0.38)',
+                    boxShadow: '0 2px 14px rgba(255,107,122,0.1)',
+                  }
+                : isWarning
+                  ? {
+                      background: 'linear-gradient(145deg, rgba(255,170,44,0.22) 0%, rgba(200,120,20,0.12) 100%)',
+                      borderColor: 'rgba(255,170,44,0.36)',
+                      boxShadow: '0 2px 14px rgba(255,170,44,0.08)',
+                    }
+                  : undefined
+            }
           >
-            <div className="flex items-center gap-1 mb-1.5 pb-1 border-b border-white/10">
-              <ChevronRight className="w-2.5 h-2.5" style={{ color: `${CYAN}80` }} />
-              <span className="text-[8px] font-mono tracking-widest" style={{ color: `${CYAN}60` }}>
-                ODIN://output
-              </span>
-            </div>
             <pre
-              className={`text-xs font-mono whitespace-pre-wrap leading-relaxed break-words ${
-                isError ? 'text-red-400' : isWarning ? 'text-amber-300' : 'text-white/85'
-              }`}
+              className="text-[12px] font-sans whitespace-pre-wrap leading-snug break-words"
+              style={{
+                color: isError
+                  ? '#FF6B7A'
+                  : isWarning
+                    ? AMBER
+                    : 'rgba(255,255,255,0.85)',
+              }}
             >
-              {isLatest && !isError ? (
-                <TypewriterText text={msg.content} speed={12} />
-              ) : (
-                msg.content
-              )}
+              {isLatest && !isError
+                ? <TypewriterText text={msg.content} speed={typingSpeedMs} syncHolo />
+                : msg.content}
             </pre>
           </div>
         </div>
@@ -106,88 +137,132 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
   )
 }
 
-export default function ChatPanel() {
-  const messages = useChatStore((s) => s.messages)
-  const isLoading = useChatStore((s) => s.isLoading)
+/* ── 카드 헤더 오른쪽: 상태 인디케이터 ── */
+function StatusIndicator() {
   const isSpeaking = useSpeechStore((s) => s.isSpeaking)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const [latestOdinId, setLatestOdinId] = useState<string | null>(null)
+  const isAwake    = useOdinWakeStore((s) => s.isAwake)
+  const isWaking   = useOdinWakeStore((s) => s.isWaking)
+  const isTyping   = useHoloAnimStore((s) => s.isTyping)
+  const isLoading  = useChatStore((s) => s.isLoading)
+
+  const label = !isAwake
+    ? 'STANDBY'
+    : isWaking
+      ? 'BOOTING'
+      : isSpeaking
+        ? 'SPEAKING'
+        : isTyping
+          ? 'TYPING'
+          : isLoading
+            ? 'PROCESSING'
+            : 'ONLINE'
+
+  const color = !isAwake
+    ? VIOLET
+    : isSpeaking
+      ? AMBER
+      : isTyping
+        ? AI_PALETTE.violet
+        : CYAN
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <BreathingDot color={color} size={6} active={isAwake} />
+      <span
+        className="text-[9px] font-mono font-semibold tracking-[0.18em] uppercase"
+        style={{ color }}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
+
+/* ── 메인 컴포넌트 ── */
+function filterByCategory(messages: ChatMessage[], category: ChatCategory) {
+  if (category === 'all') return messages
+  return messages.filter(
+    (m) => m.role === 'system' || m.category === category,
+  )
+}
+
+export default function ChatPanel() {
+  const messages      = useChatStore((s) => s.messages)
+  const chatCategory  = useChatStore((s) => s.chatCategory)
+  const isLoading     = useChatStore((s) => s.isLoading)
+  const visibleMessages = filterByCategory(messages, chatCategory)
+  const isSpeaking = useSpeechStore((s) => s.isSpeaking)
+  const bottomRef  = useRef<HTMLDivElement>(null)
+  const [latestId, setLatestId] = useState<string | null>(null)
 
   useOdinTTS()
+  useWakeWordListener()
+  useChatArchiveSync()
 
   const lastOdinMsg = [...messages].reverse().find((m) => m.role === 'odin')
 
   useEffect(() => {
-    if (lastOdinMsg && lastOdinMsg.id !== latestOdinId) {
-      setLatestOdinId(lastOdinMsg.id)
-    }
-  }, [lastOdinMsg, latestOdinId])
+    if (lastOdinMsg && lastOdinMsg.id !== latestId) setLatestId(lastOdinMsg.id)
+  }, [lastOdinMsg, latestId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isLoading])
+  }, [visibleMessages, isLoading])
 
   return (
-    <GlassPanel glow className="flex flex-col h-full overflow-hidden relative rounded-sm border-0">
-      {/* 발화 중 상태 바 */}
-      <motion.div
-        className="absolute top-0 left-0 right-0 h-0.5 pointer-events-none z-20"
-        style={{ background: CYAN }}
-        animate={{ opacity: isSpeaking ? [0.5, 1, 0.5] : 0 }}
-        transition={{ duration: 0.8, repeat: isSpeaking ? Infinity : 0 }}
+    <JarvisCard className="flex flex-col h-full overflow-hidden">
+      {/* 카드 헤더 */}
+      <JarvisCardHeader
+        title="Voice Assistant"
+        accent={CYAN}
+        right={<StatusIndicator />}
       />
-      {/* 헤더 */}
-      <div
-        className="relative z-10 flex items-center gap-2 px-3 py-2 border-b flex-shrink-0"
-        style={{
-          borderColor: 'rgba(59,130,246,0.25)',
-          background: 'linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08), rgba(20,184,166,0.06))',
-        }}
-      >
-        <Terminal className="w-3 h-3" style={{ color: CYAN }} />
-        <span className="text-[8px] font-mono font-bold uppercase tracking-widest" style={{ color: CYAN }}>
-          INTERACTION LOG
-        </span>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-[8px] font-mono text-white/55 font-semibold">{messages.length} ENTRIES</span>
-          <div className="flex gap-0.5">
-            {['#22c55e', CYAN, AMBER].map((c, i) => (
-              <span key={i} className="w-1.5 h-1.5 rounded-sm" style={{ background: c, opacity: 0.7 }} />
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* 자비스 홀로그램 비주얼라이저 */}
-      <div className="relative z-10">
+      {/* 음성 활성 표시선 */}
+      <motion.div
+        className="h-px flex-shrink-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent 0%, ${CYAN} 50%, transparent 100%)`,
+        }}
+        animate={{ opacity: isSpeaking ? [0.2, 0.9, 0.2] : 0 }}
+        transition={{ duration: 0.9, repeat: isSpeaking ? Infinity : 0 }}
+      />
+
+      {/* 홀로그램 (건드리지 않음) */}
+      <div className="flex-shrink-0 relative">
         <JarvisHologram />
       </div>
 
-      {/* 로그 영역 */}
-      <div
-        className="relative z-10 flex-1 overflow-y-auto"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.015) 2px, rgba(0,240,255,0.015) 4px)',
-        }}
-      >
-        <div className="py-1.5">
-          {messages.map((msg) => {
-            if (msg.role === 'system') return <SystemLine key={msg.id} msg={msg} />
-            if (msg.role === 'user') return <UserMessage key={msg.id} msg={msg} />
-            return (
-              <OdinMessage
-                key={msg.id}
-                msg={msg}
-                isLatest={msg.id === latestOdinId && !isLoading}
-              />
-            )
-          })}
-          <div ref={bottomRef} />
-        </div>
+      {/* 구분선 */}
+      <div className="mx-3" style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
+      {/* 메시지 로그 — 남은 공간 모두 사용 */}
+      <div className="jarvis-chat-log flex-1 min-h-0 overflow-y-auto scrollbar-none relative py-1">
+        {visibleMessages.length === 0 && (
+          <p className="text-center text-[10px] font-mono text-white/18 py-3 tracking-[0.14em] uppercase">
+            {chatCategory === 'all' ? 'No conversation yet' : '해당 구분의 대화가 없습니다'}
+          </p>
+        )}
+        {visibleMessages.map((msg) => {
+          if (msg.role === 'system') return <SystemLine key={msg.id} msg={msg} />
+          if (msg.role === 'user')   return <UserMessage key={msg.id} msg={msg} />
+          return (
+            <OdinMessage
+              key={msg.id}
+              msg={msg}
+              isLatest={msg.id === latestId && !isLoading}
+            />
+          )
+        })}
+        <div ref={bottomRef} />
         <ThinkingOverlay visible={isLoading} />
       </div>
-    </GlassPanel>
+
+      {/* 명령 입력 */}
+      <CommandInput />
+
+      {/* 웨이크 오버레이 */}
+      <OdinWakeOverlay />
+    </JarvisCard>
   )
 }
