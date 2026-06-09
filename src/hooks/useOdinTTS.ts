@@ -24,7 +24,12 @@ export function useOdinTTS() {
 
     if (isLoading) return
 
-    const odinMessages = messages.filter((m) => m.role === 'odin' && m.status !== 'error')
+    const odinMessages = messages.filter(
+      (m) =>
+        m.role === 'odin' &&
+        m.status !== 'error' &&
+        !m.id.startsWith('wake_'), // 깨우기 인사는 TTS 제외 — 질문에 대한 답변만 읽음
+    )
     if (odinMessages.length === 0) return
 
     const latest = odinMessages[odinMessages.length - 1]

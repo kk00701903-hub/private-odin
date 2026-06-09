@@ -13,7 +13,9 @@
     "preview": "vite preview",
     "preview:dev": "npm run build:dev && npm run preview",
     "test:edge-functions": "cd supabase/edge_function && deno task test",
-    "chat-archive-server": "node server/chat-archive-server.mjs"
+    "chat-archive-server": "node server/chat-archive-server.mjs",
+    "wol-server": "node server/wol-server.mjs",
+    "odin-api": "node server/odin-api.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

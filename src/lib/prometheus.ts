@@ -1,10 +1,9 @@
-// @section: prometheus — VM101 Prometheus Instant Query 클라이언트
+// @section: prometheus — VM101 Prometheus Instant Query (직접 또는 odin-api 프록시)
+import { getPrometheusBaseUrl } from '@/lib/odinApiBase'
 
-/** VM101 Prometheus. 미설정 시 Vite dev 프록시 /prometheus 사용 */
-export function getPrometheusBaseUrl(): string {
-  const env = import.meta.env.VITE_PROMETHEUS_URL?.trim()
-  if (env) return env.replace(/\/$/, '')
-  return '/prometheus'
+/** VM101 Prometheus. odin-api 프록시 또는 VITE_PROMETHEUS_URL */
+export function getPrometheusApiUrl(): string {
+  return getPrometheusBaseUrl()
 }
 
 interface PromQueryResponse {
@@ -16,7 +15,7 @@ interface PromQueryResponse {
 }
 
 export async function promQueryScalar(expr: string): Promise<number | null> {
-  const base = getPrometheusBaseUrl()
+  const base = getPrometheusApiUrl()
   try {
     const res = await fetch(
       `${base}/api/v1/query?query=${encodeURIComponent(expr)}`,
@@ -34,7 +33,7 @@ export async function promQueryScalar(expr: string): Promise<number | null> {
 }
 
 export async function promQueryHasResult(expr: string): Promise<boolean> {
-  const base = getPrometheusBaseUrl()
+  const base = getPrometheusApiUrl()
   try {
     const res = await fetch(
       `${base}/api/v1/query?query=${encodeURIComponent(expr)}`,
@@ -49,7 +48,7 @@ export async function promQueryHasResult(expr: string): Promise<boolean> {
 }
 
 export async function checkPrometheusHealth(): Promise<boolean> {
-  const base = getPrometheusBaseUrl()
+  const base = getPrometheusApiUrl()
   try {
     const res = await fetch(`${base}/-/healthy`, { method: 'GET' })
     return res.ok

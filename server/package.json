@@ -1,0 +1,8 @@
+{
+  "name": "odin-server",
+  "private": true,
+  "type": "module",
+  "optionalDependencies": {
+    "pg": "^8.13.0"
+  }
+}

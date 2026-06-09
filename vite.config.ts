@@ -226,6 +226,16 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/api\/chat-archive/, ''),
         },
+        '/api/wol': {
+          target: process.env.VITE_WOL_API_URL || 'http://127.0.0.1:8788',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/wol/, ''),
+        },
+        '/api/odin': {
+          target: process.env.VITE_ODIN_API_URL || 'http://127.0.0.1:8790',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/odin/, ''),
+        },
       },
     },
     plugins: [
@@ -233,11 +243,11 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.svg', 'odin-icon.svg', 'robots.txt'],
+        includeAssets: ['favicon.svg', 'freya-icon.svg', 'odin-icon.svg', 'robots.txt'],
         manifest: {
-          name: 'Odin Project',
-          short_name: 'Odin',
-          description: 'Omniscient Defense Intelligence Network — AI Command Interface',
+          name: '프레이야',
+          short_name: '프레이야',
+          description: '고양이가 이끄는 AI 마차 — 주인님의 AI 어시스턴트',
           theme_color: '#0B0D17',
           background_color: '#0B0D17',
           display: 'standalone',
@@ -248,13 +258,13 @@ export default defineConfig(({ mode }) => {
           categories: ['productivity', 'utilities'],
           icons: [
             {
-              src: 'odin-icon.svg',
+              src: 'freya-icon.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'any',
             },
             {
-              src: 'odin-icon.svg',
+              src: 'freya-icon.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'maskable',

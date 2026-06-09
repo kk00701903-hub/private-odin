@@ -12,6 +12,7 @@ import OdinWakeOverlay from '@/components/OdinWakeOverlay'
 import CommandInput from '@/components/odin/CommandInput'
 import { useOdinTTS } from '@/hooks/useOdinTTS'
 import { useChatArchiveSync } from '@/hooks/useChatArchiveSync'
+import { useOdinDbSync } from '@/hooks/useOdinDbSync'
 import { useWakeWordListener } from '@/hooks/useWakeWordListener'
 import { useSpeechStore } from '@/store/useSpeechStore'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
@@ -19,6 +20,7 @@ import { useHoloAnimStore } from '@/store/useHoloAnimStore'
 import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
 import { typingSpeedMsFromLevel } from '@/lib/odinAssistantSpeed'
 import { AI_PALETTE } from '@/lib/odinTheme'
+import { AI_NAME_LABEL } from '@/lib/appBrand'
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -65,13 +67,13 @@ function UserMessage({ msg }: { msg: ChatMessage }) {
   )
 }
 
-/* ── Odin 메시지 (좌측, 보라 버블) ── */
+/* ── Odin 메시지 (좌측, 주황 버블) ── */
 function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean }) {
   const typingSpeedLevel = useOdinSettingsStore((s) => s.typingSpeedLevel)
   const typingSpeedMs = typingSpeedMsFromLevel(typingSpeedLevel)
   const isError   = msg.status === 'error'
   const isWarning = msg.content.includes('⚠')
-  const accent    = isError ? '#FF6B7A' : isWarning ? AMBER : CYAN
+  const accent    = isError ? '#FF6B7A' : AMBER
 
   return (
     <FadeInMessage>
@@ -92,7 +94,7 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
               className="text-[9px] font-mono font-bold uppercase tracking-[0.18em]"
               style={{ color: accent }}
             >
-              ODIN
+              {AI_NAME_LABEL}
             </span>
             <span className="text-[10px] font-mono text-white/20">
               {formatTime(msg.timestamp)}
@@ -109,11 +111,15 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
                   }
                 : isWarning
                   ? {
-                      background: 'linear-gradient(145deg, rgba(255,170,44,0.22) 0%, rgba(200,120,20,0.12) 100%)',
-                      borderColor: 'rgba(255,170,44,0.36)',
-                      boxShadow: '0 2px 14px rgba(255,170,44,0.08)',
+                      background: 'linear-gradient(145deg, rgba(255,170,44,0.32) 0%, rgba(200,120,20,0.18) 100%)',
+                      borderColor: 'rgba(255,170,44,0.45)',
+                      boxShadow: '0 2px 14px rgba(255,170,44,0.12)',
                     }
-                  : undefined
+                  : {
+                      background: 'linear-gradient(145deg, rgba(255,170,44,0.28) 0%, rgba(230,120,20,0.18) 100%)',
+                      borderColor: 'rgba(255,170,44,0.42)',
+                      boxShadow: '0 2px 14px rgba(255,170,44,0.14)',
+                    }
             }
           >
             <pre
@@ -198,6 +204,7 @@ export default function ChatPanel() {
   useOdinTTS()
   useWakeWordListener()
   useChatArchiveSync()
+  useOdinDbSync()
 
   const lastOdinMsg = [...messages].reverse().find((m) => m.role === 'odin')
 

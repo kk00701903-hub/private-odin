@@ -43,10 +43,13 @@ declare const __ROUTE_MESSAGING_ENABLED__: boolean;
 
 interface ImportMetaEnv {
   readonly VITE_N8N_WEBHOOK_URL?: string
-  /** VM101 Prometheus base URL (예: http://10.179.93.101:9090) */
+  /** 통합 NAS API (chat/tasks/settings/wol/prometheus) */
+  readonly VITE_ODIN_API_URL?: string
+  /** VM101 Prometheus — odin-api 프록시 사용 시 VITE_ODIN_API_URL만으로 충분 */
   readonly VITE_PROMETHEUS_URL?: string
-  /** 일자별 대화 아카이브 API (예: http://10.179.93.101:8787) */
+  /** 레거시: VITE_ODIN_API_URL 미설정 시 */
   readonly VITE_CHAT_ARCHIVE_URL?: string
+  readonly VITE_WOL_API_URL?: string
 }
 
 interface ImportMeta {

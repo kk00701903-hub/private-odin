@@ -77,10 +77,10 @@ const deserializeMessage = (msg: SerializedChatMessage): ChatMessage => ({
   timestamp: new Date(msg.timestamp),
 })
 
-/** 데모 응답 — 웹훅 미설정 시 특정 입력에 맞춘 오딘 답변 */
+/** 데모 응답 — 웹훅 미설정 시 특정 입력에 맞춘 프레이야 답변 */
 const DEMO_RESPONSES: Record<string, string> = {
-  '반갑습니다, 주인님. 오딘 사령탑이 정상 가동 중입니다.':
-    '반갑습니다, 주인님. 오딘 사령탑이 정상 가동 중입니다. 모든 시스템이 nominal 상태이며, 명령을 대기하고 있습니다.',
+  '반갑습니다, 주인님. 프레이야 마차가 정상 가동 중입니다.':
+    '반갑습니다, 주인님. 프레이야 마차가 정상 가동 중입니다. 모든 시스템이 nominal 상태이며, 명령을 대기하고 있습니다.',
 }
 
 function resolveDemoResponse(input: string): string | null {
@@ -89,18 +89,36 @@ function resolveDemoResponse(input: string): string | null {
   return null
 }
 
+/** 응답에 주인님 질문이 그대로 반복되면 제거 */
+function stripUserQuestionEcho(response: string, userQuestion: string): string {
+  const q = userQuestion.trim()
+  if (!q) return response
+
+  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  let out = response
+
+  out = out.replace(
+    new RegExp(`["'「『]?${esc}["'」』]?\\s*명령을\\s*수신했습니다`, 'gi'),
+    '명령을 수신했습니다',
+  )
+  out = out.replace(new RegExp(`["'「『]${esc}["'」』]`, 'g'), '')
+  out = out.replace(new RegExp(`^${esc}\\s*[,:-]?\\s*`, 'im'), '')
+
+  return out.replace(/\n{3,}/g, '\n\n').trim()
+}
+
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: generateId(),
     role: 'system',
-    content: '[ ODIN v3.0 — 시스템 부팅 완료 ]',
+    content: '[ FREYA v1.0 — 시스템 부팅 완료 ]',
     timestamp: new Date(Date.now() - 60_000 * 5),
     status: 'received',
   },
   {
     id: generateId(),
     role: 'odin',
-    content: '안녕하십니까, 주인님. 저는 오딘(ODIN)입니다. 홈랩 인프라 제어, 정보 수집, 일정 관리 — 무엇이든 명령하십시오.',
+    content: '안녕하십니까, 주인님. 저는 프레이야(FREYA)입니다. 홈랩 인프라 제어, 정보 수집, 일정 관리 — 무엇이든 명령하십시오.',
     timestamp: new Date(Date.now() - 60_000 * 4),
     status: 'received',
   },
@@ -224,8 +242,10 @@ export const useChatStore = create<ChatStore>()(
         const demo = resolveDemoResponse(content)
         odinContent =
           demo ??
-          `[ WEBHOOK UNSET ]\n"${content}" 명령을 수신했습니다. VITE_N8N_WEBHOOK_URL 환경 변수를 설정하면 실제 오딘 AI와 연결됩니다.`
+          '[ WEBHOOK UNSET ]\n명령을 수신했습니다. VITE_N8N_WEBHOOK_URL 환경 변수를 설정하면 실제 프레이야 AI와 연결됩니다.'
       }
+
+      odinContent = stripUserQuestionEcho(odinContent, content)
 
       const odinMsg: ChatMessage = {
         id: generateId(),
@@ -237,7 +257,7 @@ export const useChatStore = create<ChatStore>()(
       }
       set((s) => ({ messages: [...s.messages, odinMsg] }))
     } catch (err) {
-      console.error('[ODIN] sendMessage error:', err)
+      console.error('[FREYA] sendMessage error:', err)
       const errMsg: ChatMessage = {
         id: generateId(),
         role: 'odin',

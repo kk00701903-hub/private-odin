@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X } from 'lucide-react'
 import { CYAN } from '@/components/OdinCore'
+import { APP_NAME } from '@/lib/appBrand'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -61,7 +62,7 @@ export default function PwaInstallBanner() {
             <Download className="w-4 h-4 flex-shrink-0" style={{ color: CYAN }} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-mono font-semibold" style={{ color: CYAN }}>
-                ODIN 홈 화면에 추가
+                {APP_NAME} 홈 화면에 추가
               </p>
               <p className="text-[8px] font-mono text-white/40 truncate">
                 PWA로 설치하여 앱처럼 사용하세요

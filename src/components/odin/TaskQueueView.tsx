@@ -116,7 +116,7 @@ function TaskRow({
             onClick={onSend}
             className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
             style={{ background: `${CYAN}15`, border: `1px solid ${CYAN}28` }}
-            title="오딘에게 전송 (HOME 탭으로 이동)"
+            title="프레이야에게 전송 (HOME 탭으로 이동)"
           >
             <SendHorizonal className="w-3.5 h-3.5" style={{ color: CYAN }} />
           </button>
@@ -305,7 +305,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
             rows={2}
             placeholder={
               type === 'request'
-                ? '오딘에게 요청할 내용을 입력하세요… (Enter로 추가)'
+                ? '프레이야에게 요청할 내용을 입력하세요… (Enter로 추가)'
                 : '메모할 내용을 입력하세요… (Enter로 추가)'
             }
             className="flex-1 bg-transparent text-[13px] font-sans text-white/80 placeholder:text-white/22 outline-none resize-none leading-relaxed"

@@ -134,11 +134,11 @@ export default function CommandInput() {
           rows={1}
           placeholder={
             !isAwake
-              ? '"오딘"이라 불러 깨우세요…'
+              ? '"프레이야"라고 불러 깨우세요…'
               : isListening
                 ? '음성 입력 중…'
                 : chatCategory === 'all'
-                  ? '오딘에게 명령하십시오…'
+                  ? '프레이야에게 명령하십시오…'
                   : `[${categoryLabel}] 명령을 입력하세요…`
           }
           disabled={isLoading || !isAwake}

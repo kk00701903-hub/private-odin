@@ -1,7 +1,11 @@
 // @section: odin-wake-word — 웨이크워드 감지 유틸
 
-/** 오딘 호출로 인식할 패턴 */
+/** 프레이야 호출로 인식할 패턴 (레거시 오딘/odin 포함) */
 const WAKE_PATTERNS = [
+  /프레이야/i,
+  /프\s*레\s*이\s*야/i,
+  /freya/i,
+  /hey\s*freya/i,
   /오딘/i,
   /오\s*딘/i,
   /odin/i,
@@ -14,7 +18,7 @@ export function containsWakeWord(text: string): boolean {
   return WAKE_PATTERNS.some((p) => p.test(compact) || p.test(text))
 }
 
-/** 웨이크워드 이후 명령 추출 — "오딘 서버 상태" → "서버 상태" */
+/** 웨이크워드 이후 명령 추출 — "프레이야 서버 상태" → "서버 상태" */
 export function extractCommandAfterWake(text: string): string {
   let rest = text
   for (const p of WAKE_PATTERNS) {

@@ -1,39 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Odin">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="프레이야">
   <defs>
-    <radialGradient id="core" cx="50%" cy="42%" r="55%">
-      <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#05050A" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="1.8" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1035"/>
+      <stop offset="100%" stop-color="#07090f"/>
+    </linearGradient>
+    <linearGradient id="car" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C6FFF"/>
+      <stop offset="100%" stop-color="#FFAA2C"/>
+    </linearGradient>
   </defs>
-
-  <!-- 0� -->
-  <rect width="64" height="64" rx="14" fill="#05050A"/>
-  <circle cx="32" cy="32" r="28" fill="url(#core)"/>
-
-  <!-- x� � -->
-  <circle cx="32" cy="32" r="26" fill="none" stroke="#00F0FF" stroke-width="1" stroke-opacity="0.35"/>
-  <circle cx="32" cy="32" r="20" fill="none" stroke="#00F0FF" stroke-width="0.6" stroke-opacity="0.2" stroke-dasharray="3 4"/>
-
-  <!-- )( ��� -->
-  <path
-    d="M32 10 L46 18 V34 C46 44 40 50 32 54 C24 50 18 44 18 34 V18 Z"
-    fill="rgba(0,240,255,0.08)"
-    stroke="#00F0FF"
-    stroke-width="1.6"
-    filter="url(#glow)"
-  />
-
-  <!-- $ O �l -->
-  <ellipse cx="32" cy="33" rx="9" ry="11" fill="none" stroke="#00F0FF" stroke-width="2.2" filter="url(#glow)"/>
-  <circle cx="32" cy="33" r="2.2" fill="#00F0FF" filter="url(#glow)"/>
-
-  <!-- �� x� -->
-  <circle cx="32" cy="14" r="2" fill="#00F0FF" opacity="0.9"/>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <circle cx="50" cy="14" r="6" fill="#FFF3C4" opacity="0.85"/>
+  <path d="M12 42 H52 L48 36 H16 Z" fill="url(#car)"/>
+  <circle cx="20" cy="46" r="6" fill="none" stroke="#FFAA2C" stroke-width="2"/>
+  <circle cx="44" cy="46" r="6" fill="none" stroke="#FFAA2C" stroke-width="2"/>
+  <ellipse cx="32" cy="28" rx="8" ry="7" fill="#A78BFA"/>
+  <path d="M26 22 L28 16 L30 22 Z" fill="#A78BFA"/>
+  <path d="M38 22 L36 16 L34 22 Z" fill="#A78BFA"/>
+  <circle cx="29" cy="28" r="1.2" fill="#00D4FF"/>
+  <circle cx="35" cy="28" r="1.2" fill="#00D4FF"/>
+  <line x1="32" y1="22" x2="32" y2="16" stroke="#FFAA2C" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

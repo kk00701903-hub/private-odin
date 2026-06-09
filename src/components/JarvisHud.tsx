@@ -43,7 +43,7 @@ function BootSequence() {
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.2, repeat: Infinity }}
           >
-            INITIALIZING ODIN
+            INITIALIZING FREYA
           </motion.p>
 
           {/* 프로그레스 바 */}

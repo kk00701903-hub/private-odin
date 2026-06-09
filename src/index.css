@@ -305,11 +305,11 @@
   .jarvis-bubble-odin {
     background: linear-gradient(
       145deg,
-      rgba(124, 111, 255, 0.26) 0%,
-      rgba(0, 201, 167, 0.14) 100%
+      rgba(255, 170, 44, 0.28) 0%,
+      rgba(230, 120, 20, 0.18) 100%
     );
-    border: 1px solid rgba(124, 111, 255, 0.36);
-    box-shadow: 0 2px 14px rgba(124, 111, 255, 0.1);
+    border: 1px solid rgba(255, 170, 44, 0.42);
+    box-shadow: 0 2px 14px rgba(255, 170, 44, 0.14);
     border-radius: 4px 14px 14px 14px;
     padding: 7px 11px;
   }

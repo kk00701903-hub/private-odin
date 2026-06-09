@@ -34,6 +34,11 @@ jobs:
         run: npm run build
         env:
           GITHUB_PAGES: 'true'
+          VITE_ODIN_API_URL: ${{ secrets.VITE_ODIN_API_URL }}
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
+          VITE_PROMETHEUS_URL: ${{ secrets.VITE_PROMETHEUS_URL }}
+          VITE_CHAT_ARCHIVE_URL: ${{ secrets.VITE_CHAT_ARCHIVE_URL }}
+          VITE_WOL_API_URL: ${{ secrets.VITE_WOL_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

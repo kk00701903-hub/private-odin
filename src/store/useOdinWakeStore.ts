@@ -2,13 +2,13 @@
 import { create } from 'zustand'
 import { useChatStore } from '@/store/useChatStore'
 import { useSpeechStore } from '@/store/useSpeechStore'
+import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
 
 export type WakeSource = 'button' | 'voice' | 'boot'
 
-const SLEEP_TIMEOUT_MS = 3 * 60 * 1000
 const WAKE_GREETINGS = [
-  '네, 주인님. 오딘이 깨어났습니다. 명령을 내려 주십시오.',
-  '주인님, 오딘 시스템 온라인. 무엇을 도와드릴까요?',
+  '네, 주인님. 프레이야가 깨어났습니다. 명령을 내려 주십시오.',
+  '주인님, 프레이야 시스템 온라인. 무엇을 도와드릴까요?',
   '깨어났습니다, 주인님. 대기 중입니다.',
 ]
 
@@ -28,7 +28,14 @@ interface OdinWakeStore {
 
 function resetSleepTimer(sleep: () => void) {
   if (sleepTimer) clearTimeout(sleepTimer)
-  sleepTimer = setTimeout(sleep, SLEEP_TIMEOUT_MS)
+  const ms = useOdinSettingsStore.getState().getIdleTimeoutMs()
+  sleepTimer = setTimeout(sleep, ms)
+}
+
+/** 설정 변경 시 활성 상태면 타이머 재시작 */
+export function rescheduleIdleSleepTimer() {
+  const { isAwake, sleep } = useOdinWakeStore.getState()
+  if (isAwake) resetSleepTimer(sleep)
 }
 
 export const useOdinWakeStore = create<OdinWakeStore>((set, get) => ({
@@ -49,7 +56,7 @@ export const useOdinWakeStore = create<OdinWakeStore>((set, get) => ({
     useSpeechStore.getState().stopSpeaking()
     useChatStore.getState().setIsListening(false)
     set({ isAwake: false, isWaking: false, wakeSource: null, isWakeListening: true })
-    useChatStore.getState().addSystemMessage('[ ODIN — 절전 모드 · "오딘" 또는 버튼으로 깨우세요 ]')
+    useChatStore.getState().addSystemMessage('[ 프레이야 — 절전 모드 · "프레이야" 또는 버튼으로 깨우세요 ]')
   },
 
   wakeUp: (source, followUpCommand) => {
@@ -60,9 +67,7 @@ export const useOdinWakeStore = create<OdinWakeStore>((set, get) => ({
 
     const greeting = WAKE_GREETINGS[Math.floor(Math.random() * WAKE_GREETINGS.length)]
     const chat = useChatStore.getState()
-    const speech = useSpeechStore.getState()
-
-    chat.addSystemMessage(`[ WAKE · ${source.toUpperCase()} — ODIN ONLINE ]`)
+    chat.addSystemMessage(`[ WAKE · ${source.toUpperCase()} — FREYA ONLINE ]`)
 
     if (!isAwake) {
       const odinMsg = {
@@ -73,7 +78,6 @@ export const useOdinWakeStore = create<OdinWakeStore>((set, get) => ({
         status: 'received' as const,
       }
       useChatStore.setState({ messages: [...chat.messages, odinMsg] })
-      speech.speakText(greeting, odinMsg.id)
     }
 
     if (followUpCommand) {

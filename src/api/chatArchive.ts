@@ -1,5 +1,5 @@
 // @section: chat-archive-api — 일자별 대화 서버 저장
-
+import { getOdinApiBaseUrl } from '@/lib/odinApiBase'
 import { getDateKey } from '@/lib/chatDate'
 
 export interface ChatArchiveEntry {
@@ -19,9 +19,7 @@ export interface ChatDailyLog {
 }
 
 export function getChatArchiveBaseUrl(): string {
-  const env = import.meta.env.VITE_CHAT_ARCHIVE_URL?.trim()
-  if (env) return env.replace(/\/$/, '')
-  return '/api/chat-archive'
+  return getOdinApiBaseUrl()
 }
 
 export async function fetchDailyLog(date: string): Promise<ChatDailyLog | null> {

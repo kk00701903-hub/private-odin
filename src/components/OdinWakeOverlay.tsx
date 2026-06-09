@@ -2,8 +2,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Power } from 'lucide-react'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
-import { useSpeechStore } from '@/store/useSpeechStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
+import { APP_NAME, APP_NAME_EN, APP_TAGLINE } from '@/lib/appBrand'
 
 const CYAN   = AI_PALETTE.cyan
 const VIOLET = AI_PALETTE.violet
@@ -13,11 +13,8 @@ export default function OdinWakeOverlay() {
   const isWaking      = useOdinWakeStore((s) => s.isWaking)
   const wakeUp        = useOdinWakeStore((s) => s.wakeUp)
   const isWordListening = useOdinWakeStore((s) => s.isWakeListening)
-  const speakText     = useSpeechStore((s) => s.speakText)
-
   function handleWake() {
     wakeUp()
-    speakText('안녕하십니까, 주인님. 오딘이 준비되었습니다.', 'wake-greeting')
   }
 
   return (
@@ -44,7 +41,7 @@ export default function OdinWakeOverlay() {
             }}
           />
 
-          {/* ODIN 브랜딩 */}
+          {/* 앱 브랜딩 */}
           <motion.div
             className="flex flex-col items-center gap-2 mb-8"
             initial={{ opacity: 0, y: -10 }}
@@ -52,7 +49,7 @@ export default function OdinWakeOverlay() {
             transition={{ delay: 0.15, duration: 0.45 }}
           >
             <h1
-              className="text-4xl font-black tracking-[0.5em]"
+              className="text-4xl font-black tracking-[0.18em]"
               style={{
                 fontFamily: 'Orbitron, sans-serif',
                 background: `linear-gradient(135deg, ${CYAN} 0%, ${VIOLET} 100%)`,
@@ -61,10 +58,10 @@ export default function OdinWakeOverlay() {
                 backgroundClip: 'text',
               }}
             >
-              ODIN
+              {APP_NAME}
             </h1>
             <p className="text-[12px] font-mono text-white/35 tracking-[0.22em] uppercase">
-              AI Assistant System
+              {APP_NAME_EN} · {APP_TAGLINE}
             </p>
           </motion.div>
 
@@ -126,7 +123,7 @@ export default function OdinWakeOverlay() {
             transition={{ delay: 0.35 }}
           >
             안녕하십니까, 주인님<br />
-            <span className="text-white/25 text-[12px]">오딘을 깨워 주십시오</span>
+            <span className="text-white/25 text-[12px]">프레이야를 깨워 주십시오</span>
           </motion.p>
 
           {/* 웨이크워드 상태 pill */}

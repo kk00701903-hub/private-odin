@@ -6,14 +6,17 @@ import ChatPanel from '@/components/odin/ChatPanel'
 import MobileWidgetBoard from '@/components/odin/MobileWidgetBoard'
 import OdinBottomNav from '@/components/odin/OdinBottomNav'
 import TaskQueueView from '@/components/odin/TaskQueueView'
+import NasWakeButton from '@/components/odin/NasWakeButton'
 import JarvisHud from '@/components/JarvisHud'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import { BreathingDot, CYAN, VIOLET, AMBER } from '@/components/OdinCore'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
 import { useSpeechStore } from '@/store/useSpeechStore'
 import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
+import { rescheduleIdleSleepTimer } from '@/store/useOdinWakeStore'
 import { formatStandbyLabel, formatTypingLabel } from '@/lib/odinAssistantSpeed'
 import { AI_PALETTE } from '@/lib/odinTheme'
+import { APP_NAME, APP_NAME_EN } from '@/lib/appBrand'
 
 /* ───────────────────────────────────────
    슬림 헤더 (단일 행, ~44px)
@@ -55,9 +58,9 @@ function SlimHeader() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {/* ODIN 로고 */}
+      {/* 앱 로고 */}
       <span
-        className="text-[13px] font-black tracking-[0.28em] leading-none flex-shrink-0"
+        className="text-[13px] font-black tracking-[0.12em] leading-none flex-shrink-0"
         style={{
           fontFamily: 'Orbitron, sans-serif',
           background: `linear-gradient(120deg, ${CYAN} 0%, ${VIOLET} 100%)`,
@@ -66,7 +69,7 @@ function SlimHeader() {
           backgroundClip: 'text',
         }}
       >
-        ODIN
+        {APP_NAME}
       </span>
 
       {/* 구분선 */}
@@ -104,7 +107,7 @@ function SlimHeader() {
           <motion.button
             onClick={sleep}
             className="w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0 hover:bg-white/8 transition-colors"
-            title="오딘 슬립"
+            title="프레이야 슬립"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
@@ -248,6 +251,19 @@ const MANUAL_ENTRIES: ManualEntry[] = [
     commands: [
       { cmd: 'cd /root',         desc: 'root 홈 디렉토리로 이동' },
       { cmd: 'claude --resume',  desc: 'Claude 세션 이어서 시작' },
+    ],
+  },
+  {
+    id: 'vm101-system-prompt',
+    title: 'system_prompt.md — Claude Code 기본 규칙',
+    vm: 'VM 101',
+    description:
+      'Claude Code는 system_prompt.md에 정의된 기본 규칙을 기억합니다. 주인님 호칭, 코딩 스타일, 금지 사항 등 프로젝트 공통 지침을 이 파일에 두면 세션을 이어서 실행해도 동일한 규칙이 적용됩니다.',
+    commands: [
+      { cmd: 'cd /root',                      desc: 'root 홈 디렉토리로 이동' },
+      { cmd: 'cat system_prompt.md',          desc: '기본 규칙 내용 확인' },
+      { cmd: 'nano system_prompt.md',         desc: '기본 규칙 편집 (nano)' },
+      { cmd: 'claude --resume',               desc: '규칙 반영 후 세션 재개' },
     ],
   },
   // ← 새 항목은 여기에 추가
@@ -413,6 +429,10 @@ function SpeedSliderRow({
   valueLabel,
   onChange,
   accent,
+  min = 1,
+  max = 10,
+  minLabel,
+  maxLabel,
 }: {
   label: string
   desc: string
@@ -420,6 +440,10 @@ function SpeedSliderRow({
   valueLabel: string
   onChange: (v: number) => void
   accent: string
+  min?: number
+  max?: number
+  minLabel?: string
+  maxLabel?: string
 }) {
   return (
     <div className="px-4 py-3.5">
@@ -436,18 +460,22 @@ function SpeedSliderRow({
         </span>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-[9px] font-mono text-white/20 w-4 text-center">1</span>
+        <span className="text-[9px] font-mono text-white/20 w-5 text-center flex-shrink-0">
+          {minLabel ?? min}
+        </span>
         <input
           type="range"
-          min={1}
-          max={10}
+          min={min}
+          max={max}
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="odin-speed-slider flex-1"
           style={{ accentColor: accent }}
         />
-        <span className="text-[9px] font-mono text-white/20 w-4 text-center">10</span>
+        <span className="text-[9px] font-mono text-white/20 w-5 text-center flex-shrink-0">
+          {maxLabel ?? max}
+        </span>
       </div>
     </div>
   )
@@ -489,7 +517,7 @@ function VoiceAssistantSpeedCard() {
         />
         <SpeedSliderRow
           label="말풍선 속도"
-          desc="오딘 응답 텍스트가 한 글자씩 나타날 때의 출력·음성 속도"
+          desc="프레이야 응답 텍스트가 한 글자씩 나타날 때의 출력·음성 속도"
           value={typingLevel}
           valueLabel={formatTypingLabel(typingLevel)}
           onChange={setTyping}
@@ -503,6 +531,31 @@ function VoiceAssistantSpeedCard() {
 /* ───────────────────────────────────────
    SETTINGS 뷰
    ─────────────────────────────────────── */
+function IdleTimeoutSetting() {
+  const minutes = useOdinSettingsStore((s) => s.idleTimeoutMinutes)
+  const setMinutes = useOdinSettingsStore((s) => s.setIdleTimeoutMinutes)
+
+  const handleChange = (v: number) => {
+    setMinutes(v)
+    rescheduleIdleSleepTimer()
+  }
+
+  return (
+    <SpeedSliderRow
+      label="미사용 대기 전환"
+      desc="입력·음성 활동이 없을 때 절전(최초) 상태로 돌아가는 시간"
+      value={minutes}
+      valueLabel={`${minutes}분`}
+      onChange={handleChange}
+      accent={VIOLET}
+      min={1}
+      max={60}
+      minLabel="1분"
+      maxLabel="60분"
+    />
+  )
+}
+
 function SettingsView() {
   const isMuted    = useSpeechStore((s) => s.isMuted)
   const toggleMute = useSpeechStore((s) => s.toggleMute)
@@ -513,7 +566,7 @@ function SettingsView() {
   const rows = [
     {
       label: '음성 출력',
-      desc: 'Odin의 TTS 음성 응답',
+      desc: '프레이야 TTS 음성 응답',
       action: (
         <button
           onClick={toggleMute}
@@ -530,7 +583,7 @@ function SettingsView() {
       ),
     },
     {
-      label: '오딘 상태',
+      label: '프레이야 상태',
       desc: isAwake ? '현재 활성 상태' : '슬립 상태',
       action: (
         <button
@@ -576,6 +629,8 @@ function SettingsView() {
               {action}
             </div>
           ))}
+          <IdleTimeoutSetting />
+          <NasWakeButton />
         </div>
       </div>
 
@@ -596,7 +651,7 @@ function SettingsView() {
             backgroundClip: 'text',
           }}
         >
-          ODIN
+          {APP_NAME_EN}
         </span>
         <span className="text-[10px] font-mono text-white/30 tracking-widest">v1.0.0 · PWA</span>
         <Settings className="w-4 h-4 text-white/20 mt-1" />

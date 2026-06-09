@@ -8,11 +8,11 @@ if ('serviceWorker' in navigator) {
     immediate: true,
     onRegisteredSW(swUrl, registration) {
       if (registration) {
-        console.info('[ODIN PWA] Service worker registered:', swUrl)
+        console.info('[FREYA PWA] Service worker registered:', swUrl)
       }
     },
     onRegisterError(error) {
-      console.warn('[ODIN PWA] Service worker registration failed:', error)
+      console.warn('[FREYA PWA] Service worker registration failed:', error)
     },
   })
 }

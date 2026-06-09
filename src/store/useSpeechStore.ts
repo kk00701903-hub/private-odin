@@ -1,6 +1,6 @@
 // @section: speech-store — 오딘 TTS 전역 상태
 import { create } from 'zustand'
-import { isSpeechSupported, pickKoreanVoice, sanitizeForSpeech } from '@/lib/odinSpeech'
+import { isSpeechSupported, pickOdinVoice, sanitizeForSpeech } from '@/lib/odinSpeech'
 import { speechRateFromTypingMs } from '@/lib/odinAssistantSpeed'
 import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
 
@@ -53,10 +53,10 @@ export const useSpeechStore = create<SpeechStore>((set, get) => ({
     const utterance = new SpeechSynthesisUtterance(spoken)
     utterance.lang = 'ko-KR'
     utterance.rate = speechRateFromTypingMs(useOdinSettingsStore.getState().getTypingSpeedMs())
-    utterance.pitch = 0.9
     utterance.volume = 1
 
-    const voice = pickKoreanVoice()
+    const { voice, pitch } = pickOdinVoice()
+    utterance.pitch = pitch
     if (voice) utterance.voice = voice
 
     utterance.onstart = () => set({ isSpeaking: true, lastSpokenId: utteranceId })
