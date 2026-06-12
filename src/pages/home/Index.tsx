@@ -1,22 +1,19 @@
 // @section: home-index — 슬림 헤더 + 탭 분기 레이아웃
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Moon, AlertTriangle, TrendingUp, TrendingDown, Volume2, VolumeX, Bell, Settings, BookOpen, ChevronDown, Copy, Check, Terminal } from 'lucide-react'
+import { Moon, AlertTriangle, TrendingUp, TrendingDown, Volume2, VolumeX, Bell } from 'lucide-react'
 import ChatPanel from '@/components/odin/ChatPanel'
 import MobileWidgetBoard from '@/components/odin/MobileWidgetBoard'
 import OdinBottomNav from '@/components/odin/OdinBottomNav'
 import TaskQueueView from '@/components/odin/TaskQueueView'
-import NasWakeButton from '@/components/odin/NasWakeButton'
+import SettingsView from '@/components/odin/SettingsView'
 import JarvisHud from '@/components/JarvisHud'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import { BreathingDot, CYAN, VIOLET, AMBER } from '@/components/OdinCore'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
 import { useSpeechStore } from '@/store/useSpeechStore'
-import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
-import { rescheduleIdleSleepTimer } from '@/store/useOdinWakeStore'
-import { formatStandbyLabel, formatTypingLabel } from '@/lib/odinAssistantSpeed'
 import { AI_PALETTE } from '@/lib/odinTheme'
-import { APP_NAME, APP_NAME_EN } from '@/lib/appBrand'
+import FreyaLogo from '@/components/odin/FreyaLogo'
 
 /* ───────────────────────────────────────
    슬림 헤더 (단일 행, ~44px)
@@ -29,7 +26,7 @@ function OdinClock() {
     return () => clearInterval(t)
   }, [])
   return (
-    <span className="text-[12px] font-mono tabular-nums text-white/50">
+    <span className="text-[14px] font-mono font-medium tabular-nums text-white/55">
       {now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
     </span>
   )
@@ -51,40 +48,28 @@ function SlimHeader() {
         background: 'rgba(18, 22, 38, 0.88)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        border: '1.5px solid rgba(255,255,255,0.14)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.35)',
       }}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {/* 앱 로고 */}
-      <span
-        className="text-[13px] font-black tracking-[0.12em] leading-none flex-shrink-0"
-        style={{
-          fontFamily: 'Orbitron, sans-serif',
-          background: `linear-gradient(120deg, ${CYAN} 0%, ${VIOLET} 100%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        {APP_NAME}
-      </span>
+      <FreyaLogo size={32} />
 
       {/* 구분선 */}
-      <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+      <div className="flex-1 h-[2px]" style={{ background: 'rgba(255,255,255,0.12)' }} />
 
       {/* 상태 인디케이터 */}
-      <div className="flex items-center gap-1">
-        <BreathingDot color={statusColor} size={5} active={isAwake} />
-        <span className="text-[9px] font-mono uppercase tracking-[0.16em]" style={{ color: statusColor }}>
+      <div className="flex items-center gap-1.5">
+        <BreathingDot color={statusColor} size={6} active={isAwake} />
+        <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.14em]" style={{ color: statusColor }}>
           {statusLabel}
         </span>
       </div>
 
       {/* 날씨 */}
-      <span className="text-[11px] font-mono text-white/35 flex-shrink-0">☀ 18°C</span>
+      <span className="text-[13px] font-mono font-medium text-white/45 flex-shrink-0">☀ 18°C</span>
 
       {/* 시계 */}
       <OdinClock />
@@ -92,12 +77,12 @@ function SlimHeader() {
       {/* 음소거 토글 */}
       <button
         onClick={toggleMute}
-        className="w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0 transition-colors hover:bg-white/8"
+        className="w-7 h-7 flex items-center justify-center rounded-full flex-shrink-0 transition-colors hover:bg-white/8"
         title={isMuted ? '음성 켜기' : '음성 끄기'}
       >
         {isMuted
-          ? <VolumeX className="w-3 h-3 text-white/25" />
-          : <Volume2 className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.35)' }} />
+          ? <VolumeX className="w-4 h-4 text-white/35" strokeWidth={2.2} />
+          : <Volume2 className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.45)' }} strokeWidth={2.2} />
         }
       </button>
 
@@ -151,7 +136,7 @@ function AlertList() {
         background: 'rgba(18, 22, 38, 0.82)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        border: '1.5px solid rgba(255,255,255,0.14)',
       }}
     >
       <div className="jarvis-card-header">
@@ -160,7 +145,7 @@ function AlertList() {
             style={{ background: AMBER, boxShadow: `0 0 6px ${AMBER}` }} />
           <span className="jarvis-card-title" style={{ color: AMBER }}>Alerts</span>
         </div>
-        <span className="text-[10px] font-mono text-white/25">{alerts.length} events</span>
+        <span className="text-[12px] font-mono text-white/25">{alerts.length} events</span>
       </div>
       <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
         {alerts.map(({ id, Icon, text, color, time }) => (
@@ -174,10 +159,10 @@ function AlertList() {
                 : <span className="w-2 h-2 rounded-full" style={{ background: color }} />
               }
             </div>
-            <span className="flex-1 text-[12px] font-sans text-white/70 leading-snug min-w-0">
+            <span className="flex-1 text-[14px] font-sans text-white/70 leading-snug min-w-0">
               {text}
             </span>
-            <span className="text-[10px] font-mono text-white/25 flex-shrink-0">{time}</span>
+            <span className="text-[12px] font-mono text-white/25 flex-shrink-0">{time}</span>
           </div>
         ))}
       </div>
@@ -194,7 +179,7 @@ function MonitorView() {
           background: 'rgba(18, 22, 38, 0.82)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          border: '1.5px solid rgba(255,255,255,0.14)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
         }}
       >
@@ -215,446 +200,9 @@ function AlertsView() {
       {/* 빈 상태 힌트 */}
       <div className="flex flex-col items-center justify-center py-12 gap-3 opacity-40">
         <Bell className="w-10 h-10" style={{ color: VIOLET }} />
-        <p className="text-[11px] font-mono text-white/40 tracking-widest uppercase">
+        <p className="text-[13px] font-mono text-white/40 tracking-widest uppercase">
           No more alerts
         </p>
-      </div>
-    </div>
-  )
-}
-
-/* ───────────────────────────────────────
-   SETTINGS 탭
-   ─────────────────────────────────────── */
-/* ───────────────────────────────────────
-   MANUAL 데이터 정의
-   (항목 추가 시 이 배열에만 추가하면 됩니다)
-   ─────────────────────────────────────── */
-interface ManualCommand {
-  cmd: string
-  desc?: string
-}
-interface ManualEntry {
-  id: string
-  title: string
-  vm?: string
-  description: string
-  commands: ManualCommand[]
-}
-
-const MANUAL_ENTRIES: ManualEntry[] = [
-  {
-    id: 'vm101-claude',
-    title: 'Claude CLI 재개 실행',
-    vm: 'VM 101',
-    description: 'VM101에 SSH 접속 후 Claude CLI를 이어서 실행합니다.',
-    commands: [
-      { cmd: 'cd /root',         desc: 'root 홈 디렉토리로 이동' },
-      { cmd: 'claude --resume',  desc: 'Claude 세션 이어서 시작' },
-    ],
-  },
-  {
-    id: 'vm101-system-prompt',
-    title: 'system_prompt.md — Claude Code 기본 규칙',
-    vm: 'VM 101',
-    description:
-      'Claude Code는 system_prompt.md에 정의된 기본 규칙을 기억합니다. 주인님 호칭, 코딩 스타일, 금지 사항 등 프로젝트 공통 지침을 이 파일에 두면 세션을 이어서 실행해도 동일한 규칙이 적용됩니다.',
-    commands: [
-      { cmd: 'cd /root',                      desc: 'root 홈 디렉토리로 이동' },
-      { cmd: 'cat system_prompt.md',          desc: '기본 규칙 내용 확인' },
-      { cmd: 'nano system_prompt.md',         desc: '기본 규칙 편집 (nano)' },
-      { cmd: 'claude --resume',               desc: '규칙 반영 후 세션 재개' },
-    ],
-  },
-  // ← 새 항목은 여기에 추가
-]
-
-/* ── 명령어 코드 블록 (복사 버튼 포함) ── */
-function CmdBlock({ cmd, desc }: ManualCommand) {
-  const [copied, setCopied] = useState(false)
-
-  function handleCopy() {
-    void navigator.clipboard.writeText(cmd).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1800)
-    })
-  }
-
-  return (
-    <div
-      className="rounded-[10px] overflow-hidden"
-      style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-    >
-      {desc && (
-        <div
-          className="px-3 py-1"
-          style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <span className="text-[10px] font-mono text-white/30">{desc}</span>
-        </div>
-      )}
-      <div
-        className="flex items-center gap-2 px-3 py-2"
-        style={{ background: 'rgba(0,0,0,0.3)' }}
-      >
-        <Terminal className="w-3 h-3 flex-shrink-0 text-white/25" />
-        <code className="flex-1 text-[13px] font-mono text-white/85 select-all min-w-0 truncate">
-          {cmd}
-        </code>
-        <button
-          onClick={handleCopy}
-          className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center transition-all"
-          style={{
-            background: copied ? `${AI_PALETTE.emerald}20` : 'rgba(255,255,255,0.06)',
-            border: `1px solid ${copied ? AI_PALETTE.emerald + '40' : 'rgba(255,255,255,0.1)'}`,
-          }}
-          title="클립보드에 복사"
-        >
-          {copied
-            ? <Check className="w-3 h-3" style={{ color: AI_PALETTE.emerald }} />
-            : <Copy className="w-3 h-3 text-white/35" />
-          }
-        </button>
-      </div>
-    </div>
-  )
-}
-
-/* ── 매뉴얼 항목 카드 (토글 확장) ── */
-function ManualEntryCard({ entry }: { entry: ManualEntry }) {
-  const [open, setOpen] = useState(true)
-
-  return (
-    <div
-      className="rounded-[16px] overflow-hidden"
-      style={{
-        background: 'rgba(18, 22, 38, 0.82)',
-        border: '1px solid rgba(255,255,255,0.07)',
-      }}
-    >
-      {/* 헤더 */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2.5 px-4 py-3 text-left"
-        style={{ borderBottom: open ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
-      >
-        <div
-          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-          style={{ background: `${CYAN}15`, border: `1px solid ${CYAN}28` }}
-        >
-          <Terminal className="w-3.5 h-3.5" style={{ color: CYAN }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            {entry.vm && (
-              <span
-                className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded flex-shrink-0"
-                style={{ background: `${VIOLET}18`, border: `1px solid ${VIOLET}30`, color: VIOLET }}
-              >
-                {entry.vm}
-              </span>
-            )}
-            <span className="text-[13px] font-sans font-semibold text-white/80 truncate">
-              {entry.title}
-            </span>
-          </div>
-        </div>
-        <motion.div
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-shrink-0"
-        >
-          <ChevronDown className="w-4 h-4 text-white/30" />
-        </motion.div>
-      </button>
-
-      {/* 본문 */}
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className="px-4 py-3 flex flex-col gap-2.5">
-              {entry.description && (
-                <p className="text-[12px] font-sans text-white/40 leading-relaxed">
-                  {entry.description}
-                </p>
-              )}
-              {entry.commands.map((c, i) => (
-                <CmdBlock key={i} {...c} />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-/* ── 매뉴얼 섹션 ── */
-function ManualSection() {
-  return (
-    <div className="flex flex-col gap-2.5">
-      {/* 섹션 헤더 */}
-      <div className="flex items-center gap-2 px-1">
-        <BookOpen className="w-3.5 h-3.5 flex-shrink-0" style={{ color: AI_PALETTE.amber }} />
-        <span
-          className="text-[10px] font-mono font-bold uppercase tracking-[0.2em]"
-          style={{ color: AI_PALETTE.amber }}
-        >
-          Manual
-        </span>
-        <div className="flex-1 h-px" style={{ background: `${AI_PALETTE.amber}20` }} />
-        <span className="text-[10px] font-mono text-white/22">{MANUAL_ENTRIES.length}개 항목</span>
-      </div>
-
-      {MANUAL_ENTRIES.map((entry) => (
-        <ManualEntryCard key={entry.id} entry={entry} />
-      ))}
-    </div>
-  )
-}
-
-/* ───────────────────────────────────────
-   보이스 어시스턴트 속도 슬라이더
-   ─────────────────────────────────────── */
-function SpeedSliderRow({
-  label,
-  desc,
-  value,
-  valueLabel,
-  onChange,
-  accent,
-  min = 1,
-  max = 10,
-  minLabel,
-  maxLabel,
-}: {
-  label: string
-  desc: string
-  value: number
-  valueLabel: string
-  onChange: (v: number) => void
-  accent: string
-  min?: number
-  max?: number
-  minLabel?: string
-  maxLabel?: string
-}) {
-  return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-start justify-between gap-3 mb-2.5">
-        <div className="min-w-0">
-          <p className="text-[13px] font-sans text-white/75 font-medium">{label}</p>
-          <p className="text-[11px] font-mono text-white/30 mt-0.5 leading-relaxed">{desc}</p>
-        </div>
-        <span
-          className="text-[10px] font-mono font-semibold flex-shrink-0 px-2 py-0.5 rounded-full"
-          style={{ color: accent, background: `${accent}15`, border: `1px solid ${accent}30` }}
-        >
-          {valueLabel}
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-[9px] font-mono text-white/20 w-5 text-center flex-shrink-0">
-          {minLabel ?? min}
-        </span>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={1}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="odin-speed-slider flex-1"
-          style={{ accentColor: accent }}
-        />
-        <span className="text-[9px] font-mono text-white/20 w-5 text-center flex-shrink-0">
-          {maxLabel ?? max}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function VoiceAssistantSpeedCard() {
-  const standbyLevel = useOdinSettingsStore((s) => s.standbySpeedLevel)
-  const typingLevel  = useOdinSettingsStore((s) => s.typingSpeedLevel)
-  const setStandby   = useOdinSettingsStore((s) => s.setStandbySpeedLevel)
-  const setTyping    = useOdinSettingsStore((s) => s.setTypingSpeedLevel)
-
-  return (
-    <div
-      className="rounded-[20px] overflow-hidden flex-shrink-0"
-      style={{
-        background: 'rgba(18, 22, 38, 0.82)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(255,255,255,0.07)',
-      }}
-    >
-      <div className="jarvis-card-header">
-        <div className="flex items-center gap-2">
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ background: CYAN, boxShadow: `0 0 6px ${CYAN}` }}
-          />
-          <span className="jarvis-card-title" style={{ color: CYAN }}>Voice Assistant</span>
-        </div>
-      </div>
-      <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <SpeedSliderRow
-          label="대기 속도"
-          desc="말풍선이 출력되지 않을 때 홀로그램·인터페이스 전체 애니메이션 속도"
-          value={standbyLevel}
-          valueLabel={formatStandbyLabel(standbyLevel)}
-          onChange={setStandby}
-          accent={CYAN}
-        />
-        <SpeedSliderRow
-          label="말풍선 속도"
-          desc="프레이야 응답 텍스트가 한 글자씩 나타날 때의 출력·음성 속도"
-          value={typingLevel}
-          valueLabel={formatTypingLabel(typingLevel)}
-          onChange={setTyping}
-          accent={AI_PALETTE.violet}
-        />
-      </div>
-    </div>
-  )
-}
-
-/* ───────────────────────────────────────
-   SETTINGS 뷰
-   ─────────────────────────────────────── */
-function IdleTimeoutSetting() {
-  const minutes = useOdinSettingsStore((s) => s.idleTimeoutMinutes)
-  const setMinutes = useOdinSettingsStore((s) => s.setIdleTimeoutMinutes)
-
-  const handleChange = (v: number) => {
-    setMinutes(v)
-    rescheduleIdleSleepTimer()
-  }
-
-  return (
-    <SpeedSliderRow
-      label="미사용 대기 전환"
-      desc="입력·음성 활동이 없을 때 절전(최초) 상태로 돌아가는 시간"
-      value={minutes}
-      valueLabel={`${minutes}분`}
-      onChange={handleChange}
-      accent={VIOLET}
-      min={1}
-      max={60}
-      minLabel="1분"
-      maxLabel="60분"
-    />
-  )
-}
-
-function SettingsView() {
-  const isMuted    = useSpeechStore((s) => s.isMuted)
-  const toggleMute = useSpeechStore((s) => s.toggleMute)
-  const isAwake    = useOdinWakeStore((s) => s.isAwake)
-  const sleep      = useOdinWakeStore((s) => s.sleep)
-  const wakeUp     = useOdinWakeStore((s) => s.wakeUp)
-
-  const rows = [
-    {
-      label: '음성 출력',
-      desc: '프레이야 TTS 음성 응답',
-      action: (
-        <button
-          onClick={toggleMute}
-          className="relative w-10 h-6 rounded-full transition-colors flex-shrink-0"
-          style={{ background: isMuted ? 'rgba(255,255,255,0.1)' : `${CYAN}40` }}
-        >
-          <motion.span
-            className="absolute top-0.5 w-5 h-5 rounded-full shadow"
-            style={{ background: isMuted ? 'rgba(255,255,255,0.3)' : CYAN }}
-            animate={{ left: isMuted ? 2 : 18 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-          />
-        </button>
-      ),
-    },
-    {
-      label: '프레이야 상태',
-      desc: isAwake ? '현재 활성 상태' : '슬립 상태',
-      action: (
-        <button
-          onClick={isAwake ? sleep : wakeUp}
-          className="px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-widest transition-colors"
-          style={
-            isAwake
-              ? { background: `${VIOLET}20`, border: `1px solid ${VIOLET}40`, color: VIOLET }
-              : { background: `${CYAN}20`, border: `1px solid ${CYAN}40`, color: CYAN }
-          }
-        >
-          {isAwake ? 'SLEEP' : 'WAKE'}
-        </button>
-      ),
-    },
-  ]
-
-  return (
-    <div className="flex flex-col gap-3 px-3 py-2 overflow-y-auto scrollbar-none h-full">
-      <div
-        className="rounded-[20px] overflow-hidden flex-shrink-0"
-        style={{
-          background: 'rgba(18, 22, 38, 0.82)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        <div className="jarvis-card-header">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ background: VIOLET, boxShadow: `0 0 6px ${VIOLET}` }} />
-            <span className="jarvis-card-title" style={{ color: VIOLET }}>System Settings</span>
-          </div>
-        </div>
-        <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-          {rows.map(({ label, desc, action }) => (
-            <div key={label} className="flex items-center justify-between gap-4 px-4 py-3.5">
-              <div className="min-w-0">
-                <p className="text-[13px] font-sans text-white/75 font-medium">{label}</p>
-                <p className="text-[11px] font-mono text-white/30 mt-0.5">{desc}</p>
-              </div>
-              {action}
-            </div>
-          ))}
-          <IdleTimeoutSetting />
-          <NasWakeButton />
-        </div>
-      </div>
-
-      <VoiceAssistantSpeedCard />
-
-      {/* 매뉴얼 섹션 */}
-      <ManualSection />
-
-      {/* 앱 정보 */}
-      <div className="flex flex-col items-center gap-1.5 py-6 opacity-30 flex-shrink-0">
-        <span
-          className="text-[15px] font-black tracking-[0.35em]"
-          style={{
-            fontFamily: 'Orbitron, sans-serif',
-            background: `linear-gradient(120deg, ${CYAN}, ${VIOLET})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          {APP_NAME_EN}
-        </span>
-        <span className="text-[10px] font-mono text-white/30 tracking-widest">v1.0.0 · PWA</span>
-        <Settings className="w-4 h-4 text-white/20 mt-1" />
       </div>
     </div>
   )

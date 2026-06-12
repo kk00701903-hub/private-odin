@@ -1,0 +1,24 @@
+# systemd 유닛 — 호스트에서 odin-api + Claude Code 브릿지 실행
+# sudo cp deploy/linux/systemd/freya-api.service.example /etc/systemd/system/freya-api.service
+# sudo systemctl daemon-reload && sudo systemctl enable --now freya-api
+
+[Unit]
+Description=Freya odin-api (PostgreSQL + Claude Code bridge)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=freya
+WorkingDirectory=/home/freya/freya
+EnvironmentFile=/home/freya/freya/deploy/linux/.env
+Environment=DATABASE_URL=postgresql://freya:CHANGE_ME@127.0.0.1:5432/freya
+Environment=CLAUDE_BRIDGE_ENABLED=true
+Environment=CLAUDE_WORKSPACE=/home/freya/freya
+Environment=ODIN_DATA_DIR=/home/freya/freya/data/odin-db
+ExecStart=/usr/bin/node /home/freya/freya/server/odin-api.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

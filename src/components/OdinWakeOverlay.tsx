@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Power } from 'lucide-react'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
-import { APP_NAME, APP_NAME_EN, APP_TAGLINE } from '@/lib/appBrand'
+import { WAKE_SCREEN_TITLE, WAKE_SCREEN_SUBTITLE } from '@/lib/appBrand'
 
 const CYAN   = AI_PALETTE.cyan
 const VIOLET = AI_PALETTE.violet
@@ -49,7 +49,7 @@ export default function OdinWakeOverlay() {
             transition={{ delay: 0.15, duration: 0.45 }}
           >
             <h1
-              className="text-4xl font-black tracking-[0.18em]"
+              className="text-4xl font-black tracking-[0.28em]"
               style={{
                 fontFamily: 'Orbitron, sans-serif',
                 background: `linear-gradient(135deg, ${CYAN} 0%, ${VIOLET} 100%)`,
@@ -58,10 +58,10 @@ export default function OdinWakeOverlay() {
                 backgroundClip: 'text',
               }}
             >
-              {APP_NAME}
+              {WAKE_SCREEN_TITLE}
             </h1>
-            <p className="text-[12px] font-mono text-white/35 tracking-[0.22em] uppercase">
-              {APP_NAME_EN} · {APP_TAGLINE}
+            <p className="text-[14px] font-mono text-white/35 tracking-[0.18em]">
+              {WAKE_SCREEN_SUBTITLE}
             </p>
           </motion.div>
 
@@ -117,13 +117,13 @@ export default function OdinWakeOverlay() {
 
           {/* 부제목 */}
           <motion.p
-            className="text-[13px] font-sans text-center text-white/40 mb-6 px-6"
+            className="text-[15px] font-sans text-center text-white/40 mb-6 px-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
           >
             안녕하십니까, 주인님<br />
-            <span className="text-white/25 text-[12px]">프레이야를 깨워 주십시오</span>
+            <span className="text-white/25 text-[14px]">프레이야를 깨워 주십시오</span>
           </motion.p>
 
           {/* 웨이크워드 상태 pill */}
@@ -143,7 +143,7 @@ export default function OdinWakeOverlay() {
               animate={isWordListening ? { opacity: [0.4, 1, 0.4] } : { opacity: 0.3 }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />
-            <span className="text-[10px] font-mono tracking-[0.14em] uppercase" style={{ color: isWordListening ? CYAN : 'rgba(255,255,255,0.3)' }}>
+            <span className="text-[12px] font-mono tracking-[0.14em] uppercase" style={{ color: isWordListening ? CYAN : 'rgba(255,255,255,0.3)' }}>
               {isWordListening ? '웨이크워드 대기 중' : '마이크 비활성'}
             </span>
           </motion.div>

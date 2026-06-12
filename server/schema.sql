@@ -37,3 +37,27 @@ CREATE TABLE IF NOT EXISTS synced_message_ids (
   id          TEXT PRIMARY KEY,
   synced_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS sub_agents (
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  category      TEXT NOT NULL,
+  description   TEXT,
+  sort_order    INT NOT NULL DEFAULT 0,
+  enabled       BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS agent_daily_duties (
+  id            TEXT PRIMARY KEY,
+  agent_id      TEXT NOT NULL REFERENCES sub_agents(id) ON DELETE CASCADE,
+  date_key      TEXT NOT NULL,
+  content       TEXT NOT NULL,
+  status        TEXT NOT NULL CHECK (status IN ('pending', 'in_progress', 'completed')),
+  sort_order    INT NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at  TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_duties_date ON agent_daily_duties (date_key);
+CREATE INDEX IF NOT EXISTS idx_agent_duties_agent_date ON agent_daily_duties (agent_id, date_key);

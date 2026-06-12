@@ -8,6 +8,7 @@ import {
 } from '@/api/chatArchive'
 import { getDateKey } from '@/lib/chatDate'
 import type { ChatMessage } from '@/store/useChatStore'
+import { rebrandChatContent } from '@/lib/rebrandText'
 
 const SYNCED_IDS_KEY = 'odin-chat-synced-ids'
 
@@ -53,7 +54,7 @@ export function fromArchiveEntry(e: ChatArchiveEntry): ChatMessage {
   return {
     id: e.id,
     role: e.role,
-    content: e.content,
+    content: rebrandChatContent(e.content),
     timestamp: new Date(e.timestamp),
     status: e.status ?? 'received',
     category: e.category,

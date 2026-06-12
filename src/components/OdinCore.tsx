@@ -310,7 +310,7 @@ export function ThinkingOverlay({ visible }: { visible: boolean }) {
           <HologramLoader size={64} />
           <VoiceWave active />
           <motion.p
-            className="text-[11px] font-mono tracking-[0.3em] uppercase"
+            className="text-[13px] font-mono tracking-[0.3em] uppercase"
             style={{ color: CYAN }}
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 2, repeat: Infinity }}

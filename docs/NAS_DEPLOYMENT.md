@@ -1,6 +1,8 @@
 # Odin NAS 배포 가이드
 
-GitHub Pages(프론트) + NAS(백엔드) 구성 요약.
+GitHub Pages(프론트) + NAS/리눅스(백엔드) 구성 요약.
+
+**리눅스 PC + Claude Code 배포:** [`LINUX_CLAUDE_DEPLOYMENT.md`](./LINUX_CLAUDE_DEPLOYMENT.md)
 
 ## 아키텍처
 

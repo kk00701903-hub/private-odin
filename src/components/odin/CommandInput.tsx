@@ -23,7 +23,7 @@ function CategorySelector() {
     <div
       className="px-3 pt-1.5 pb-1"
       style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1.5px solid rgba(255,255,255,0.12)',
         opacity: isAwake ? 1 : 0.45,
         pointerEvents: isAwake ? 'auto' : 'none',
       }}
@@ -37,7 +37,7 @@ function CategorySelector() {
               key={id}
               type="button"
               onClick={() => setChatCategory(id)}
-              className="w-full py-1 rounded-full text-[9px] font-mono font-semibold text-center transition-all"
+              className="w-full py-1 rounded-full text-[11px] font-mono font-semibold text-center transition-all"
               style={
                 active
                   ? {
@@ -48,7 +48,7 @@ function CategorySelector() {
                     }
                   : {
                       background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.07)',
+                      border: '1.5px solid rgba(255,255,255,0.14)',
                       color: 'rgba(255,255,255,0.32)',
                     }
               }
@@ -173,7 +173,7 @@ export default function CommandInput() {
                   }
                 : {
                     background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1.5px solid rgba(255,255,255,0.16)',
                   }
             }
             title="전송 (Enter)"

@@ -32,7 +32,7 @@ function SystemLine({ msg }: { msg: ChatMessage }) {
     <FadeInMessage>
       <div className="flex items-center gap-2 py-1.5 px-3">
         <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span className="text-[10px] font-mono text-white/22 tracking-[0.16em] uppercase px-2 flex-shrink-0">
+        <span className="text-[12px] font-mono text-white/22 tracking-[0.16em] uppercase px-2 flex-shrink-0">
           {msg.content}
         </span>
         <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
@@ -47,20 +47,20 @@ function UserMessage({ msg }: { msg: ChatMessage }) {
     <FadeInMessage>
       <div className="flex items-end justify-end gap-1.5 py-1 px-3">
         <div className="flex flex-col items-end gap-0.5 min-w-0" style={{ maxWidth: 'calc(100% - 40px)' }}>
-          <span className="text-[10px] font-mono text-white/22 flex-shrink-0">
+          <span className="text-[12px] font-mono font-medium text-white/38 flex-shrink-0">
             {formatTime(msg.timestamp)}
           </span>
           <div className="jarvis-bubble-user min-w-0">
-            <p className="text-[12px] font-sans text-white/90 leading-snug break-words">
+            <p className="text-[14px] font-sans font-medium text-white/95 leading-snug break-words">
               {msg.content}
             </p>
           </div>
         </div>
         <div
           className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-end mb-0.5"
-          style={{ background: 'rgba(61,142,255,0.15)', border: '1px solid rgba(61,142,255,0.25)' }}
+          style={{ background: 'rgba(61,142,255,0.15)', border: '1.5px solid rgba(61,142,255,0.35)' }}
         >
-          <User className="w-3 h-3" style={{ color: AI_PALETTE.blue }} />
+          <User className="w-3.5 h-3.5" style={{ color: AI_PALETTE.blue }} strokeWidth={2.2} />
         </div>
       </div>
     </FadeInMessage>
@@ -82,21 +82,21 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
           className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-end mb-0.5"
           style={{
             background: `${accent}15`,
-            border: `1px solid ${accent}28`,
+            border: `1.5px solid ${accent}40`,
             boxShadow: `0 0 8px ${accent}15`,
           }}
         >
-          <Bot className="w-3 h-3" style={{ color: accent }} />
+          <Bot className="w-3.5 h-3.5" style={{ color: accent }} strokeWidth={2.2} />
         </div>
         <div className="flex flex-col gap-0.5 min-w-0" style={{ maxWidth: 'calc(100% - 40px)' }}>
           <div className="flex items-center gap-1.5">
             <span
-              className="text-[9px] font-mono font-bold uppercase tracking-[0.18em]"
+              className="text-[11px] font-mono font-bold uppercase tracking-[0.18em]"
               style={{ color: accent }}
             >
               {AI_NAME_LABEL}
             </span>
-            <span className="text-[10px] font-mono text-white/20">
+            <span className="text-[12px] font-mono font-medium text-white/35">
               {formatTime(msg.timestamp)}
             </span>
           </div>
@@ -123,7 +123,7 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
             }
           >
             <pre
-              className="text-[12px] font-sans whitespace-pre-wrap leading-snug break-words"
+              className="text-[14px] font-sans font-medium whitespace-pre-wrap leading-snug break-words"
               style={{
                 color: isError
                   ? '#FF6B7A'
@@ -175,7 +175,7 @@ function StatusIndicator() {
     <div className="flex items-center gap-1.5">
       <BreathingDot color={color} size={6} active={isAwake} />
       <span
-        className="text-[9px] font-mono font-semibold tracking-[0.18em] uppercase"
+        className="text-[11px] font-mono font-semibold tracking-[0.18em] uppercase"
         style={{ color }}
       >
         {label}
@@ -246,7 +246,7 @@ export default function ChatPanel() {
       {/* 메시지 로그 — 남은 공간 모두 사용 */}
       <div className="jarvis-chat-log flex-1 min-h-0 overflow-y-auto scrollbar-none relative py-1">
         {visibleMessages.length === 0 && (
-          <p className="text-center text-[10px] font-mono text-white/18 py-3 tracking-[0.14em] uppercase">
+          <p className="text-center text-[12px] font-mono text-white/18 py-3 tracking-[0.14em] uppercase">
             {chatCategory === 'all' ? 'No conversation yet' : '해당 구분의 대화가 없습니다'}
           </p>
         )}

@@ -44,11 +44,11 @@ function MetricRow({
   return (
     <div className="flex items-center gap-2">
       <Icon className="w-3 h-3 flex-shrink-0 text-white/30" />
-      <span className="text-[10px] font-mono text-white/40 w-7 flex-shrink-0">{label}</span>
+      <span className="text-[12px] font-mono text-white/40 w-7 flex-shrink-0">{label}</span>
       <div className="flex-1">
         <GaugeBar value={gauge} max={max ?? 100} color={color} />
       </div>
-      <span className="text-[11px] font-mono font-semibold w-10 text-right flex-shrink-0" style={{ color }}>
+      <span className="text-[13px] font-mono font-semibold w-10 text-right flex-shrink-0" style={{ color }}>
         {value}
       </span>
     </div>
@@ -77,21 +77,21 @@ function VmCard({ vm }: { vm: VmLiveMetrics }) {
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <Server className="w-3.5 h-3.5 flex-shrink-0" style={{ color: accent }} />
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider" style={{ color: accent }}>
+          <span className="text-[13px] font-mono font-bold uppercase tracking-wider" style={{ color: accent }}>
             VM {vm.id}
           </span>
-          <span className="text-[10px] font-mono text-white/30 truncate">{vm.name}</span>
+          <span className="text-[12px] font-mono text-white/30 truncate">{vm.name}</span>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {running && <BreathingDot color={statusColor} size={5} />}
-          <span className="text-[10px] font-mono font-semibold" style={{ color: statusColor }}>
+          <span className="text-[12px] font-mono font-semibold" style={{ color: statusColor }}>
             {statusLabel}
           </span>
         </div>
       </div>
 
       <div className="px-3 py-2.5 space-y-1.5">
-        <p className="text-[10px] font-mono text-white/35 truncate mb-1">{vm.role}</p>
+        <p className="text-[12px] font-mono text-white/35 truncate mb-1">{vm.role}</p>
         {running ? (
           <>
             <MetricRow
@@ -111,13 +111,13 @@ function VmCard({ vm }: { vm: VmLiveMetrics }) {
             />
           </>
         ) : (
-          <p className="text-[10px] font-mono text-white/25 py-2 text-center tracking-wider uppercase">
+          <p className="text-[12px] font-mono text-white/25 py-2 text-center tracking-wider uppercase">
             VM 중지됨
           </p>
         )}
         <div className="flex items-center justify-end pt-0.5">
           <span
-            className="text-[8px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
+            className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
             style={{
               color: vm.source === 'prometheus' ? AI_PALETTE.emerald : 'rgba(255,255,255,0.28)',
               background: vm.source === 'prometheus' ? `${AI_PALETTE.emerald}12` : 'rgba(255,255,255,0.04)',
@@ -139,7 +139,7 @@ export default function MobileWidgetBoard() {
       <div className="flex items-center gap-2 mb-2.5">
         <Server className="w-3.5 h-3.5 flex-shrink-0" style={{ color: AI_PALETTE.violet }} />
         <span
-          className="text-[11px] font-mono font-bold uppercase tracking-[0.18em]"
+          className="text-[13px] font-mono font-bold uppercase tracking-[0.18em]"
           style={{ color: AI_PALETTE.violet }}
         >
           VM Monitoring
@@ -152,7 +152,7 @@ export default function MobileWidgetBoard() {
         >
           <Radio className="w-2.5 h-2.5" style={{ color: prometheusOnline ? AI_PALETTE.emerald : 'rgba(255,255,255,0.25)' }} />
           <span
-            className="text-[8px] font-mono uppercase tracking-wider"
+            className="text-[10px] font-mono uppercase tracking-wider"
             style={{ color: prometheusOnline ? AI_PALETTE.emerald : 'rgba(255,255,255,0.28)' }}
           >
             {prometheusOnline ? 'VM101 Prom' : 'Offline'}

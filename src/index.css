@@ -16,13 +16,24 @@
   --odin-safe-top: env(safe-area-inset-top, 0px);
   --odin-safe-bottom: env(safe-area-inset-bottom, 0px);
   --odin-app-max-w: 100%;
-  --odin-pad-x: 10px;
-  --odin-gap: 6px;
-  --odin-header-h: 36px;
-  --odin-nav-h: 48px;
+  --odin-pad-x: 12px;
+  --odin-gap: 8px;
+  --odin-header-h: 42px;
+  --odin-nav-h: 54px;
   --odin-holo-box: clamp(72px, 19vmin, 88px);
   --odin-card-radius: 14px;
-  --odin-card-pad: 10px 12px 9px;
+  --odin-card-pad: 12px 14px 11px;
+
+  /* 가독성 — 타이포·선 두께 */
+  --odin-fs-xs: 11px;
+  --odin-fs-sm: 13px;
+  --odin-fs-base: 15px;
+  --odin-fs-md: 16px;
+  --odin-fs-lg: 18px;
+  --odin-border-w: 1.5px;
+  --odin-border-color: rgba(255, 255, 255, 0.12);
+  --odin-border-color-strong: rgba(255, 255, 255, 0.18);
+  --odin-divider-color: rgba(255, 255, 255, 0.10);
 
   --background: oklch(0.98 0.005 200);
   --foreground: oklch(0.15 0.02 200);
@@ -140,6 +151,8 @@
   body {
     @apply bg-background text-foreground font-sans min-h-screen;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: var(--odin-fs-base);
+    font-weight: 500;
   }
   h1, h2, h3, h4, h5, h6 { @apply font-semibold tracking-tight; }
   code, pre { @apply font-mono; }
@@ -171,6 +184,8 @@
     padding-top: var(--odin-safe-top);
     padding-bottom: var(--odin-safe-bottom);
     overflow: hidden;
+    font-size: var(--odin-fs-base);
+    font-weight: 500;
   }
 
   /* ── 공통 카드 ── */
@@ -178,7 +193,7 @@
     background: rgba(18, 22, 38, 0.82);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: var(--odin-border-w) solid var(--odin-border-color);
     border-radius: var(--odin-card-radius);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     overflow: hidden;
@@ -193,20 +208,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 8px;
     padding: var(--odin-card-pad);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: var(--odin-border-w) solid var(--odin-divider-color);
     min-width: 0;
-    min-height: 36px;
+    min-height: 42px;
   }
 
   .jarvis-card-title {
     font-family: Orbitron, sans-serif;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.70);
+    color: rgba(255, 255, 255, 0.82);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -216,17 +231,17 @@
   .jarvis-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 5px 12px;
     border-radius: 99px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: var(--odin-border-w) solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
     font-family: "JetBrains Mono", monospace;
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     letter-spacing: 0.05em;
     white-space: nowrap;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.78);
   }
 
   /* ── 그라데이션 텍스트 ── */
@@ -240,15 +255,16 @@
   /* ── 입력창 ── */
   .jarvis-input {
     background: transparent;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
     font-family: Rajdhani, sans-serif;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.45;
     resize: none;
     outline: none;
   }
   .jarvis-input::placeholder {
-    color: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.32);
   }
   .jarvis-input:disabled {
     opacity: 0.35;
@@ -257,50 +273,50 @@
 
   /* ── 설정 속도 슬라이더 ── */
   .odin-speed-slider {
-    height: 4px;
+    height: 6px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.12);
     appearance: none;
     cursor: pointer;
   }
   .odin-speed-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--thumb-color, #00d4ff);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.35);
+    border: 2.5px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.45);
   }
   .odin-speed-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--thumb-color, #00d4ff);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.35);
+    border: 2.5px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.45);
   }
 
   /* ── 대화 로그 영역 ── */
   .jarvis-chat-log {
-    margin: 4px 8px 6px;
+    margin: 6px 10px 8px;
     border-radius: 12px;
     background: rgba(6, 8, 16, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border: var(--odin-border-w) solid rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
-  /* ── 메시지 버블 — 주인님(우) vs 오딘(좌) ── */
+  /* ── 메시지 버블 — 주인님(우) vs AI(좌) ── */
   .jarvis-bubble-user {
     background: linear-gradient(
       145deg,
       rgba(61, 142, 255, 0.32) 0%,
       rgba(40, 95, 210, 0.22) 100%
     );
-    border: 1px solid rgba(61, 142, 255, 0.42);
+    border: var(--odin-border-w) solid rgba(61, 142, 255, 0.55);
     box-shadow: 0 2px 14px rgba(61, 142, 255, 0.12);
     border-radius: 14px 14px 4px 14px;
-    padding: 7px 11px;
+    padding: 9px 13px;
   }
   .jarvis-bubble-odin {
     background: linear-gradient(
@@ -308,10 +324,10 @@
       rgba(255, 170, 44, 0.28) 0%,
       rgba(230, 120, 20, 0.18) 100%
     );
-    border: 1px solid rgba(255, 170, 44, 0.42);
+    border: var(--odin-border-w) solid rgba(255, 170, 44, 0.55);
     box-shadow: 0 2px 14px rgba(255, 170, 44, 0.14);
     border-radius: 4px 14px 14px 14px;
-    padding: 7px 11px;
+    padding: 9px 13px;
   }
 
   /* ── 홀로그램 영역 (S25 Ultra 비율) ── */
@@ -334,31 +350,31 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     flex: 1;
-    padding: 8px 4px;
+    padding: 10px 4px;
     border-radius: 16px;
     transition: background 0.2s;
-    border: 1px solid transparent;
+    border: var(--odin-border-w) solid transparent;
   }
   .jarvis-nav-item.active {
-    background: rgba(0, 212, 255, 0.1);
-    border-color: rgba(0, 212, 255, 0.25);
+    background: rgba(0, 212, 255, 0.12);
+    border-color: rgba(0, 212, 255, 0.35);
   }
   .jarvis-nav-label {
     font-family: "JetBrains Mono", monospace;
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
 
   /* ── 게이지 바 ── */
   .jarvis-gauge-track {
-    height: 6px;
+    height: 8px;
     width: 100%;
     border-radius: 99px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.12);
     overflow: hidden;
   }
 }
@@ -381,9 +397,9 @@
 @media (max-width: 480px) and (min-height: 800px) {
   :root {
     --odin-holo-box: clamp(68px, 18vmin, 82px);
-    --odin-header-h: 34px;
-    --odin-nav-h: 46px;
-    --odin-gap: 5px;
-    --odin-pad-x: 8px;
+    --odin-header-h: 40px;
+    --odin-nav-h: 52px;
+    --odin-gap: 7px;
+    --odin-pad-x: 10px;
   }
 }

@@ -43,6 +43,8 @@ declare const __ROUTE_MESSAGING_ENABLED__: boolean;
 
 interface ImportMetaEnv {
   readonly VITE_N8N_WEBHOOK_URL?: string
+  /** Claude Code /ai/chat 인증 (선택) */
+  readonly VITE_ODIN_AI_API_KEY?: string
   /** 통합 NAS API (chat/tasks/settings/wol/prometheus) */
   readonly VITE_ODIN_API_URL?: string
   /** VM101 Prometheus — odin-api 프록시 사용 시 VITE_ODIN_API_URL만으로 충분 */

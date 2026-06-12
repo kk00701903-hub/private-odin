@@ -1,6 +1,8 @@
 // @section: chat-store
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { rebrandChatContent } from '@/lib/rebrandText'
+import { getAiWebhookUrl, getOdinAiApiKey } from '@/lib/odinApiBase'
 
 export type MessageRole = 'user' | 'odin' | 'system'
 
@@ -74,6 +76,7 @@ const serializeMessage = (msg: ChatMessage): SerializedChatMessage => ({
 
 const deserializeMessage = (msg: SerializedChatMessage): ChatMessage => ({
   ...msg,
+  content: rebrandChatContent(msg.content),
   timestamp: new Date(msg.timestamp),
 })
 
@@ -165,7 +168,7 @@ export const useChatStore = create<ChatStore>()(
       inputText: '',
       isListening: false,
       isLoading: false,
-      webhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL ?? '',
+      webhookUrl: getAiWebhookUrl(),
       chatCategory: 'all',
 
       setInputText: (text) => set({ inputText: text }),
@@ -177,7 +180,7 @@ export const useChatStore = create<ChatStore>()(
         const msg: ChatMessage = {
           id: generateId(),
           role: 'system',
-          content,
+          content: rebrandChatContent(content),
           timestamp: new Date(),
           status: 'received',
         }
@@ -222,30 +225,38 @@ export const useChatStore = create<ChatStore>()(
       let odinContent = ''
 
       if (webhookUrl) {
-        // n8n 웹훅 실제 연동
+        // n8n 웹훅 또는 odin-api /ai/chat (Claude Code)
         const history = getChatHistory()
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        const aiKey = getOdinAiApiKey()
+        if (aiKey) headers['X-API-Key'] = aiKey
+
         const res = await fetch(webhookUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             message: content,
             category: chatCategory,
+            assistant_name: '프레이야',
+            persona: 'freya',
             history: history.slice(-20), // 최근 20개만 전송
             timestamp: new Date().toISOString(),
           }),
         })
         const data = await res.json()
-        odinContent = data?.output ?? data?.message ?? '[ 응답을 파싱하지 못했습니다 ]'
+        odinContent = rebrandChatContent(
+          data?.output ?? data?.message ?? '[ 응답을 파싱하지 못했습니다 ]',
+        )
       } else {
         // 웹훅 미설정 시 데모/에코 응답
         await new Promise((r) => setTimeout(r, 800))
         const demo = resolveDemoResponse(content)
         odinContent =
           demo ??
-          '[ WEBHOOK UNSET ]\n명령을 수신했습니다. VITE_N8N_WEBHOOK_URL 환경 변수를 설정하면 실제 프레이야 AI와 연결됩니다.'
+          '[ WEBHOOK UNSET ]\n명령을 수신했습니다. VITE_ODIN_API_URL(Claude Code) 또는 VITE_N8N_WEBHOOK_URL을 설정하면 실제 프레이야 AI와 연결됩니다.'
       }
 
-      odinContent = stripUserQuestionEcho(odinContent, content)
+      odinContent = rebrandChatContent(stripUserQuestionEcho(odinContent, content))
 
       const odinMsg: ChatMessage = {
         id: generateId(),

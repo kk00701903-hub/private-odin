@@ -1,0 +1,65 @@
+# 프레이야 백엔드 — PostgreSQL + odin-api
+# 사용: deploy/linux/.env 작성 후
+#   docker compose -f deploy/linux/docker-compose.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: freya-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-freya}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-freya}
+      TZ: Asia/Seoul
+    volumes:
+      - freya-pgdata:/var/lib/postgresql/data
+      - ../../server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-freya} -d ${POSTGRES_DB:-freya}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - freya-net
+
+  odin-api:
+    build:
+      context: ../..
+      dockerfile: deploy/linux/Dockerfile.odin-api
+    container_name: freya-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '${ODIN_API_PORT:-8790}:8790'
+    environment:
+      ODIN_API_PORT: '8790'
+      ODIN_DATA_DIR: /data/odin-db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-freya}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-freya}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://kk00701903-hub.github.io,http://localhost:8080,http://localhost:8081}
+      TZ: Asia/Seoul
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://host.docker.internal:9090}
+      WOL_MAC: ${WOL_MAC:-}
+      WOL_BROADCAST: ${WOL_BROADCAST:-255.255.255.255}
+      # Claude Code는 호스트에서 실행 권장 → bridge는 host에서 odin-api 직접 실행 시 활성화
+      CLAUDE_BRIDGE_ENABLED: ${CLAUDE_BRIDGE_ENABLED:-false}
+      CLAUDE_WORKSPACE: ${CLAUDE_WORKSPACE:-/workspace}
+      CLAUDE_BIN: ${CLAUDE_BIN:-claude}
+      ODIN_AI_API_KEY: ${ODIN_AI_API_KEY:-}
+    volumes:
+      - freya-api-data:/data/odin-db
+      - ${REPO_MOUNT:-../..}:/workspace:ro
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - freya-net
+
+volumes:
+  freya-pgdata:
+  freya-api-data:
+
+networks:
+  freya-net:
+    driver: bridge

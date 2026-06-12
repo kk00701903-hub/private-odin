@@ -7,6 +7,7 @@ import { ko } from 'date-fns/locale'
 import { useTaskStore, Task, TaskType } from '@/store/useTaskStore'
 import { useChatStore } from '@/store/useChatStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
+import SubAgentDutiesPanel from '@/components/odin/SubAgentDutiesPanel'
 
 const CYAN   = AI_PALETTE.cyan
 const VIOLET = AI_PALETTE.violet
@@ -30,7 +31,7 @@ function dateKey(iso: string) {
 function TypeBadge({ type }: { type: TaskType }) {
   return type === 'memo' ? (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
       style={{ background: `${VIOLET}18`, border: `1px solid ${VIOLET}30`, color: VIOLET }}
     >
       <StickyNote className="w-2.5 h-2.5" />
@@ -38,7 +39,7 @@ function TypeBadge({ type }: { type: TaskType }) {
     </span>
   ) : (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider flex-shrink-0"
       style={{ background: `${CYAN}15`, border: `1px solid ${CYAN}28`, color: CYAN }}
     >
       <MessageSquarePlus className="w-2.5 h-2.5" />
@@ -87,17 +88,17 @@ function TaskRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
           <TypeBadge type={task.type} />
-          <span className="text-[10px] font-mono text-white/22">
+          <span className="text-[12px] font-mono text-white/22">
             {format(parseISO(task.createdAt), 'HH:mm')}
           </span>
           {isDone && task.completedAt && (
-            <span className="text-[9px] font-mono text-white/18">
+            <span className="text-[11px] font-mono text-white/18">
               완료 {format(parseISO(task.completedAt), 'HH:mm')}
             </span>
           )}
         </div>
         <p
-          className="text-[13px] font-sans leading-snug break-words"
+          className="text-[15px] font-sans leading-snug break-words"
           style={{
             color: isDone ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.82)',
             textDecoration: isDone ? 'line-through' : 'none',
@@ -141,11 +142,11 @@ function DateGroupHeader({ iso, count }: { iso: string; count: number }) {
       className="flex items-center gap-2.5 px-4 py-2 sticky top-0 z-10"
       style={{ background: 'rgba(10, 12, 20, 0.82)', backdropFilter: 'blur(12px)' }}
     >
-      <span className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-[0.18em]">
+      <span className="text-[12px] font-mono font-bold text-white/40 uppercase tracking-[0.18em]">
         {formatDateLabel(iso)}
       </span>
       <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-      <span className="text-[10px] font-mono text-white/22">{count}건</span>
+      <span className="text-[12px] font-mono text-white/22">{count}건</span>
     </div>
   )
 }
@@ -220,7 +221,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
       {/* ── 헤더 ── */}
       <div
         className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex items-center gap-2">
           <ClipboardList className="w-4 h-4 flex-shrink-0" style={{ color: CYAN }} />
@@ -229,7 +230,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
         <div className="flex items-center gap-1.5">
           {requestPending > 0 && (
             <span
-              className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+              className="px-2 py-0.5 rounded-full text-[12px] font-mono font-bold"
               style={{ background: `${CYAN}18`, border: `1px solid ${CYAN}30`, color: CYAN }}
             >
               {requestPending} 대기
@@ -237,7 +238,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
           )}
           {pendingCount > 0 && (
             <span
-              className="px-2 py-0.5 rounded-full text-[10px] font-mono"
+              className="px-2 py-0.5 rounded-full text-[12px] font-mono"
               style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}
             >
               총 {pendingCount} 미완료
@@ -246,10 +247,13 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
         </div>
       </div>
 
+      {/* ── 금일 서브에이전트 자율 업무 ── */}
+      <SubAgentDutiesPanel />
+
       {/* ── 입력 폼 ── */}
       <div
         className="px-3 py-2.5 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
       >
         {/* 타입 선택 */}
         <div className="flex gap-1.5 mb-2">
@@ -257,13 +261,13 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
             <button
               key={t}
               onClick={() => setType(t)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[11px] font-mono font-semibold uppercase tracking-wider transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[13px] font-mono font-semibold uppercase tracking-wider transition-all"
               style={
                 type === t
                   ? t === 'request'
                     ? { background: `${CYAN}20`, border: `1px solid ${CYAN}40`, color: CYAN }
                     : { background: `${VIOLET}18`, border: `1px solid ${VIOLET}35`, color: VIOLET }
-                  : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }
+                  : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.3)' }
               }
             >
               {t === 'request'
@@ -276,11 +280,11 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
           {/* 미완료만 보기 토글 */}
           <button
             onClick={() => setShowPending((v) => v === 'all' ? 'pending' : 'all')}
-            className="px-2.5 py-1.5 rounded-[10px] text-[10px] font-mono uppercase tracking-wider transition-all"
+            className="px-2.5 py-1.5 rounded-[10px] text-[12px] font-mono uppercase tracking-wider transition-all"
             style={
               showPending === 'pending'
                 ? { background: `${AMBER}15`, border: `1px solid ${AMBER}30`, color: AMBER }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.28)' }
+                : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.28)' }
             }
           >
             미완료만
@@ -308,7 +312,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
                 ? '프레이야에게 요청할 내용을 입력하세요… (Enter로 추가)'
                 : '메모할 내용을 입력하세요… (Enter로 추가)'
             }
-            className="flex-1 bg-transparent text-[13px] font-sans text-white/80 placeholder:text-white/22 outline-none resize-none leading-relaxed"
+            className="flex-1 bg-transparent text-[15px] font-sans text-white/80 placeholder:text-white/22 outline-none resize-none leading-relaxed"
           />
           <button
             onClick={handleAdd}
@@ -319,7 +323,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
                 ? type === 'request'
                   ? { background: `linear-gradient(135deg, ${AI_PALETTE.blue}, ${CYAN})`, boxShadow: `0 4px 12px ${CYAN}30` }
                   : { background: `linear-gradient(135deg, ${VIOLET}, ${AI_PALETTE.purple})`, boxShadow: `0 4px 12px ${VIOLET}30` }
-                : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }
+                : { background: 'rgba(255,255,255,0.06)', border: '1.5px solid rgba(255,255,255,0.16)' }
             }
             title="추가 (Enter)"
           >
@@ -332,15 +336,15 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
       {uniqueDates.length > 1 && (
         <div
           className="flex items-center gap-1.5 px-3 py-2 overflow-x-auto scrollbar-none flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+          style={{ borderBottom: '1.5px solid rgba(255,255,255,0.10)' }}
         >
           <button
             onClick={() => setDateFilter(null)}
-            className="px-2.5 py-1 rounded-full text-[10px] font-mono whitespace-nowrap transition-all flex-shrink-0"
+            className="px-2.5 py-1 rounded-full text-[12px] font-mono whitespace-nowrap transition-all flex-shrink-0"
             style={
               !dateFilter
                 ? { background: `${CYAN}18`, border: `1px solid ${CYAN}30`, color: CYAN }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
+                : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.35)' }
             }
           >
             전체
@@ -351,11 +355,11 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
               <button
                 key={d}
                 onClick={() => setDateFilter(dateFilter === d ? null : d)}
-                className="px-2.5 py-1 rounded-full text-[10px] font-mono whitespace-nowrap transition-all flex-shrink-0"
+                className="px-2.5 py-1 rounded-full text-[12px] font-mono whitespace-nowrap transition-all flex-shrink-0"
                 style={
                   dateFilter === d
                     ? { background: `${CYAN}18`, border: `1px solid ${CYAN}30`, color: CYAN }
-                    : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
+                    : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.35)' }
                 }
               >
                 {formatDateLabel(`${d}T00:00:00`)} <span className="opacity-50 ml-1">{cnt}</span>
@@ -370,10 +374,10 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
         {grouped.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 opacity-35">
             <ClipboardList className="w-12 h-12" style={{ color: CYAN }} />
-            <p className="text-[11px] font-mono text-white/35 tracking-widest uppercase text-center">
+            <p className="text-[13px] font-mono text-white/35 tracking-widest uppercase text-center">
               {showPending === 'pending' ? '미완료 과제 없음' : '등록된 과제 없음'}
             </p>
-            <p className="text-[11px] font-sans text-white/25 text-center px-8">
+            <p className="text-[13px] font-sans text-white/25 text-center px-8">
               위 입력창에서 요청이나 메모를 추가하세요
             </p>
           </div>

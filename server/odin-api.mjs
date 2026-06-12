@@ -9,12 +9,17 @@
  *   ALLOWED_ORIGINS    CORS 허용 origin (쉼표 구분)
  *   WOL_MAC / WOL_BROADCAST / WOL_UDP_PORT
  *   PROMETHEUS_URL     (기본 http://127.0.0.1:9090)
+ *   CLAUDE_BRIDGE_ENABLED  (true 시 /ai/chat 활성)
+ *   CLAUDE_WORKSPACE   Claude Code 작업 디렉터리
+ *   CLAUDE_BIN         (기본 claude)
+ *   ODIN_AI_API_KEY    /ai/chat API 키 (선택)
  */
 import http from 'node:http'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import dgram from 'node:dgram'
 import { fileURLToPath } from 'node:url'
+import { askClaudeCode, isClaudeBridgeEnabled, checkAiAuth } from './lib/claudeBridge.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.ODIN_API_PORT) || 8790
@@ -54,6 +59,7 @@ async function initPostgres() {
 
 async function ensureDataDir() {
   await fs.mkdir(path.join(DATA_DIR, 'chat'), { recursive: true })
+  await fs.mkdir(path.join(DATA_DIR, 'agent-duties'), { recursive: true })
 }
 
 function corsHeaders(origin) {
@@ -214,6 +220,147 @@ async function putSettings(settings) {
   return settings
 }
 
+/* ── Sub-agents ── */
+const DEFAULT_SUB_AGENTS = [
+  { id: 'infra', name: '인프라', category: 'infra', description: 'Proxmox·NAS·네트워크·모니터링', sortOrder: 1, enabled: true },
+  { id: 'planning', name: '기획설계', category: 'planning', description: '요구사항·아키텍처·로드맵', sortOrder: 2, enabled: true },
+  { id: 'development', name: '개발', category: 'development', description: '앱·API·자동화 스크립트', sortOrder: 3, enabled: true },
+  { id: 'ops', name: '운영', category: 'ops', description: '배포·알림·일일 점검', sortOrder: 4, enabled: true },
+]
+
+const DEFAULT_DUTY_TEMPLATES = {
+  infra: [
+    'Proxmox VM 100/101/103 헬스체크 및 리소스 사용량 점검',
+    'NAS 디스크·백업 상태 확인',
+  ],
+  planning: [
+    '금주 Freya 기능 로드맵 및 미결 요구사항 정리',
+    '서브에이전트 역할·우선순위 검토',
+  ],
+  development: [
+    '큐 대기 요청·버그 픽스 우선순위 정리',
+    'GitHub Pages·odin-api 배포 상태 확인',
+  ],
+  ops: [
+    'Prometheus 알림·VM 모니터링 이상 유무 확인',
+    '채팅 아카이브·DB 동기화 점검',
+  ],
+}
+
+function agentsFile() {
+  return path.join(DATA_DIR, 'agents.json')
+}
+
+function dutiesFile(date) {
+  return path.join(DATA_DIR, 'agent-duties', `${date}.json`)
+}
+
+function mapAgentRow(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    description: r.description ?? '',
+    sortOrder: r.sort_order ?? r.sortOrder ?? 0,
+    enabled: r.enabled !== false,
+  }
+}
+
+function mapDutyRow(r) {
+  return {
+    id: r.id,
+    agentId: r.agent_id ?? r.agentId,
+    date: r.date_key ?? r.date,
+    content: r.content,
+    status: r.status,
+    sortOrder: r.sort_order ?? r.sortOrder ?? 0,
+    completedAt: r.completed_at?.toISOString?.() ?? r.completedAt ?? null,
+  }
+}
+
+async function seedSubAgentsPg() {
+  for (const a of DEFAULT_SUB_AGENTS) {
+    await pgPool.query(
+      `INSERT INTO sub_agents (id, name, category, description, sort_order, enabled)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       ON CONFLICT (id) DO NOTHING`,
+      [a.id, a.name, a.category, a.description, a.sortOrder, a.enabled],
+    )
+  }
+}
+
+async function getSubAgents() {
+  if (pgPool) {
+    await seedSubAgentsPg()
+    const { rows } = await pgPool.query(
+      `SELECT id, name, category, description, sort_order, enabled
+       FROM sub_agents WHERE enabled = TRUE ORDER BY sort_order ASC, id ASC`,
+    )
+    if (rows.length) return rows.map(mapAgentRow)
+  }
+  const stored = await jsonRead(agentsFile())
+  if (stored?.length) return stored.filter((a) => a.enabled !== false)
+  await jsonWrite(agentsFile(), DEFAULT_SUB_AGENTS)
+  return DEFAULT_SUB_AGENTS
+}
+
+function buildDefaultDuties(date, agents) {
+  const duties = []
+  let n = 0
+  for (const agent of agents) {
+    const templates = DEFAULT_DUTY_TEMPLATES[agent.id] ?? [`${agent.name} 영역 금일 자율 점검`]
+    templates.forEach((content, i) => {
+      duties.push({
+        id: `duty_${date}_${agent.id}_${i}`,
+        agentId: agent.id,
+        date,
+        content,
+        status: 'pending',
+        sortOrder: n++,
+        completedAt: null,
+      })
+    })
+  }
+  return duties
+}
+
+async function seedDailyDutiesPg(date, agents) {
+  const { rows } = await pgPool.query(
+    `SELECT id FROM agent_daily_duties WHERE date_key = $1 LIMIT 1`,
+    [date],
+  )
+  if (rows.length) return
+
+  const duties = buildDefaultDuties(date, agents)
+  for (const d of duties) {
+    await pgPool.query(
+      `INSERT INTO agent_daily_duties (id, agent_id, date_key, content, status, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [d.id, d.agentId, date, d.content, d.status, d.sortOrder],
+    )
+  }
+}
+
+async function getAgentDailyDuties(date) {
+  const agents = await getSubAgents()
+  if (pgPool) {
+    await seedDailyDutiesPg(date, agents)
+    const { rows } = await pgPool.query(
+      `SELECT id, agent_id, date_key, content, status, sort_order, completed_at
+       FROM agent_daily_duties WHERE date_key = $1 ORDER BY sort_order ASC, id ASC`,
+      [date],
+    )
+    return { date, agents, duties: rows.map(mapDutyRow) }
+  }
+
+  let duties = await jsonRead(dutiesFile(date))
+  if (!duties?.length) {
+    duties = buildDefaultDuties(date, agents)
+    await jsonWrite(dutiesFile(date), duties)
+  }
+  return { date, agents, duties }
+}
+
 /* ── WOL ── */
 function normalizeMac(mac) {
   const hex = mac.replace(/[^0-9a-fA-F]/g, '')
@@ -281,6 +428,7 @@ const server = http.createServer(async (req, res) => {
         storage: pgPool ? 'postgresql' : 'json',
         wolMacConfigured: Boolean(WOL_MAC),
         prometheus: PROMETHEUS_URL,
+        claudeBridge: isClaudeBridgeEnabled(),
       }, origin)
       return
     }
@@ -290,7 +438,15 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, {
         timezone: TZ,
         storage: pgPool ? 'postgresql' : 'json',
-        features: { chat: true, tasks: true, settings: true, wol: Boolean(WOL_MAC), prometheusProxy: true },
+        features: {
+          chat: true,
+          tasks: true,
+          settings: true,
+          agents: true,
+          wol: Boolean(WOL_MAC),
+          prometheusProxy: true,
+          aiChat: isClaudeBridgeEnabled(),
+        },
       }, origin)
       return
     }
@@ -347,6 +503,21 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    /* sub-agents */
+    if (req.method === 'GET' && url.pathname === '/agents') {
+      sendJson(res, 200, { agents: await getSubAgents() }, origin)
+      return
+    }
+    if (req.method === 'GET' && url.pathname === '/agents/duties') {
+      const date = url.searchParams.get('date') || dateKey()
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        sendJson(res, 400, { error: 'date required (YYYY-MM-DD)' }, origin)
+        return
+      }
+      sendJson(res, 200, await getAgentDailyDuties(date), origin)
+      return
+    }
+
     /* settings */
     if (req.method === 'GET' && url.pathname === '/settings') {
       sendJson(res, 200, { settings: await getSettings() }, origin)
@@ -373,6 +544,31 @@ const server = http.createServer(async (req, res) => {
       }
       await sendWol(mac, payload.broadcast || WOL_BROADCAST)
       sendJson(res, 200, { ok: true, mac }, origin)
+      return
+    }
+
+    /* Claude Code AI chat (리눅스 PC 통제) */
+    if (req.method === 'POST' && (url.pathname === '/ai/chat' || url.pathname === '/webhook/odin')) {
+      if (!isClaudeBridgeEnabled()) {
+        sendJson(res, 503, { error: 'CLAUDE_BRIDGE_ENABLED is not true' }, origin)
+        return
+      }
+      if (!checkAiAuth(req)) {
+        sendJson(res, 401, { error: 'unauthorized' }, origin)
+        return
+      }
+      const payload = await readBody(req)
+      const message = payload.message ?? payload.text ?? payload.prompt
+      if (!message || typeof message !== 'string') {
+        sendJson(res, 400, { error: 'message required' }, origin)
+        return
+      }
+      const output = await askClaudeCode({
+        message,
+        history: Array.isArray(payload.history) ? payload.history : [],
+        category: payload.category ?? payload.chatCategory,
+      })
+      sendJson(res, 200, { output, message: output, ok: true }, origin)
       return
     }
 

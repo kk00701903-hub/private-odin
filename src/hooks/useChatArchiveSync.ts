@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { useChatStore } from '@/store/useChatStore'
 import { mergeTodayFromServer, syncMessagesToServer } from '@/lib/chatArchiveSync'
+import { rebrandChatContent } from '@/lib/rebrandText'
 
 const SYNC_INTERVAL_MS = 30_000
 
@@ -15,7 +16,15 @@ export function useChatArchiveSync() {
 
     void (async () => {
       const local = useChatStore.getState().messages
-      const merged = await mergeTodayFromServer(local)
+      const rebranded = local.map((m) => ({
+        ...m,
+        content: rebrandChatContent(m.content),
+      }))
+      if (rebranded.some((m, i) => m.content !== local[i].content)) {
+        useChatStore.setState({ messages: rebranded })
+      }
+
+      const merged = await mergeTodayFromServer(useChatStore.getState().messages)
       if (merged.length !== local.length) {
         useChatStore.setState({ messages: merged })
       }

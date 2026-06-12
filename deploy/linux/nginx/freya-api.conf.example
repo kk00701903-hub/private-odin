@@ -1,0 +1,34 @@
+# HTTPS 역프록시 — GitHub Pages(PWA) → odin-api
+# /etc/nginx/sites-available/freya-api.conf 로 복사 후 certbot 적용
+
+upstream freya_api {
+    server 127.0.0.1:8790;
+    keepalive 8;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name freya-api.yourdomain.com;
+
+    # certbot이 채움
+    ssl_certificate     /etc/letsencrypt/live/freya-api.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/freya-api.yourdomain.com/privkey.pem;
+
+    client_max_body_size 2m;
+
+    location / {
+        proxy_pass http://freya_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 180s;
+    }
+}
+
+server {
+    listen 80;
+    server_name freya-api.yourdomain.com;
+    return 301 https://$host$request_uri;
+}

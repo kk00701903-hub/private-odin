@@ -6,7 +6,7 @@ export function sanitizeForSpeech(text: string): string {
     .replace(/[★☆⚠▲▼●◆■□▪▫]/g, '')
     .replace(/\[.*?\]/g, '')
     .replace(/^>+\s*/gm, '')
-    .replace(/ODIN:\/\/\S+/gi, '')
+    .replace(/(?:ODIN|FREYA):\/\/\S+/gi, '')
     .replace(/\n{2,}/g, '. ')
     .replace(/\n/g, ', ')
     .replace(/\s{2,}/g, ' ')

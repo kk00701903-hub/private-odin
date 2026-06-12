@@ -61,16 +61,16 @@ export default function PwaInstallBanner() {
           >
             <Download className="w-4 h-4 flex-shrink-0" style={{ color: CYAN }} />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-mono font-semibold" style={{ color: CYAN }}>
+              <p className="text-[12px] font-mono font-semibold" style={{ color: CYAN }}>
                 {APP_NAME} 홈 화면에 추가
               </p>
-              <p className="text-[8px] font-mono text-white/40 truncate">
+              <p className="text-[10px] font-mono text-white/40 truncate">
                 PWA로 설치하여 앱처럼 사용하세요
               </p>
             </div>
             <button
               onClick={handleInstall}
-              className="px-2 py-1 rounded-lg text-[8px] font-mono uppercase tracking-wider border"
+              className="px-2 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider border"
               style={{ borderColor: `${CYAN}50`, color: CYAN, background: `${CYAN}10` }}
             >
               설치

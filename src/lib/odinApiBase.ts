@@ -29,3 +29,18 @@ export function getWolApiBaseUrl(): string {
   const api = getOdinApiBaseUrl()
   return api.replace(/\/$/, '')
 }
+
+/** Claude Code 브릿지 — VITE_N8N_WEBHOOK_URL 미설정 시 odin-api /ai/chat 사용 */
+export function getAiWebhookUrl(): string {
+  const explicit = import.meta.env.VITE_N8N_WEBHOOK_URL?.trim()
+  if (explicit) return explicit
+
+  const api = import.meta.env.VITE_ODIN_API_URL?.trim()
+  if (api) return `${api.replace(/\/$/, '')}/ai/chat`
+
+  return ''
+}
+
+export function getOdinAiApiKey(): string {
+  return import.meta.env.VITE_ODIN_AI_API_KEY?.trim() ?? ''
+}

@@ -15,7 +15,10 @@
     "test:edge-functions": "cd supabase/edge_function && deno task test",
     "chat-archive-server": "node server/chat-archive-server.mjs",
     "wol-server": "node server/wol-server.mjs",
-    "odin-api": "node server/odin-api.mjs"
+    "odin-api": "node server/odin-api.mjs",
+    "docker:linux:up": "docker compose -f deploy/linux/docker-compose.yml --env-file deploy/linux/.env up -d --build",
+    "docker:linux:down": "docker compose -f deploy/linux/docker-compose.yml --env-file deploy/linux/.env down",
+    "docker:linux:logs": "docker compose -f deploy/linux/docker-compose.yml --env-file deploy/linux/.env logs -f"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
