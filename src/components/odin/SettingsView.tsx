@@ -120,7 +120,7 @@ export default function SettingsView() {
           />
         </SettingsGroup>
 
-        <SettingsGroup title="인프라" footer="홈랩 NAS·AI 서브에이전트 구성">
+        <SettingsGroup title="인프라" footer="LangGraph · Claude Code / Qwen 2.5 3B 서브에이전트">
           <SettingsNasWakeRow />
           <SettingsSubAgentsRows />
         </SettingsGroup>

@@ -9,6 +9,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   planning: AI_PALETTE.violet,
   development: AI_PALETTE.blue,
   ops: AI_PALETTE.amber,
+  secretary: AI_PALETTE.emerald,
 }
 
 function dutyStatusLabel(status: string) {

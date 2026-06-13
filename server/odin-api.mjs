@@ -222,20 +222,21 @@ async function putSettings(settings) {
 
 /* ── Sub-agents ── */
 const DEFAULT_SUB_AGENTS = [
-  { id: 'infra', name: '인프라', category: 'infra', description: 'Proxmox·NAS·네트워크·모니터링', sortOrder: 1, enabled: true },
-  { id: 'planning', name: '기획설계', category: 'planning', description: '요구사항·아키텍처·로드맵', sortOrder: 2, enabled: true },
-  { id: 'development', name: '개발', category: 'development', description: '앱·API·자동화 스크립트', sortOrder: 3, enabled: true },
-  { id: 'ops', name: '운영', category: 'ops', description: '배포·알림·일일 점검', sortOrder: 4, enabled: true },
+  { id: 'infra', name: '인프라팀장', category: 'infra', description: 'LangGraph → Claude Code · Proxmox·NAS·네트워크·모니터링', sortOrder: 1, enabled: true },
+  { id: 'planning', name: 'IT설계팀장', category: 'planning', description: 'LangGraph → Claude Code · 요구사항·아키텍처·로드맵', sortOrder: 2, enabled: true },
+  { id: 'development', name: '개발팀장', category: 'development', description: 'LangGraph → Claude Code · 앱·API·자동화 스크립트', sortOrder: 3, enabled: true },
+  { id: 'ops', name: '운영팀장', category: 'ops', description: 'LangGraph → Claude Code · 배포·알림·일일 점검', sortOrder: 4, enabled: true },
+  { id: 'secretary', name: '비서실장', category: 'secretary', description: 'LangGraph → Qwen 2.5 3B · 일상 대화·스케줄·리마인더', sortOrder: 5, enabled: true },
 ]
 
 const DEFAULT_DUTY_TEMPLATES = {
   infra: [
-    'Proxmox VM 100/101/103 헬스체크 및 리소스 사용량 점검',
+    'Proxmox VM 100/101/102/103 헬스체크 및 리소스 사용량 점검',
     'NAS 디스크·백업 상태 확인',
   ],
   planning: [
     '금주 Freya 기능 로드맵 및 미결 요구사항 정리',
-    '서브에이전트 역할·우선순위 검토',
+    'LangGraph 워크플로·서브에이전트 역할·우선순위 검토',
   ],
   development: [
     '큐 대기 요청·버그 픽스 우선순위 정리',
@@ -244,6 +245,10 @@ const DEFAULT_DUTY_TEMPLATES = {
   ops: [
     'Prometheus 알림·VM 모니터링 이상 유무 확인',
     '채팅 아카이브·DB 동기화 점검',
+  ],
+  secretary: [
+    '주인님 일정·리마인더 확인 및 정리',
+    '일상 대화·메모 요약 (Qwen 2.5 3B)',
   ],
 }
 
@@ -283,10 +288,25 @@ async function seedSubAgentsPg() {
     await pgPool.query(
       `INSERT INTO sub_agents (id, name, category, description, sort_order, enabled)
        VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (id) DO NOTHING`,
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         category = EXCLUDED.category,
+         description = EXCLUDED.description,
+         sort_order = EXCLUDED.sort_order,
+         enabled = EXCLUDED.enabled,
+         updated_at = NOW()`,
       [a.id, a.name, a.category, a.description, a.sortOrder, a.enabled],
     )
   }
+}
+
+function mergeDefaultAgents(stored) {
+  const byId = new Map((stored ?? []).map((a) => [a.id, a]))
+  for (const def of DEFAULT_SUB_AGENTS) {
+    const prev = byId.get(def.id)
+    byId.set(def.id, { ...prev, ...def, enabled: prev?.enabled ?? def.enabled })
+  }
+  return DEFAULT_SUB_AGENTS.map((d) => byId.get(d.id))
 }
 
 async function getSubAgents() {
@@ -299,9 +319,11 @@ async function getSubAgents() {
     if (rows.length) return rows.map(mapAgentRow)
   }
   const stored = await jsonRead(agentsFile())
-  if (stored?.length) return stored.filter((a) => a.enabled !== false)
-  await jsonWrite(agentsFile(), DEFAULT_SUB_AGENTS)
-  return DEFAULT_SUB_AGENTS
+  const merged = mergeDefaultAgents(stored)
+  if (!stored || JSON.stringify(stored) !== JSON.stringify(merged)) {
+    await jsonWrite(agentsFile(), merged)
+  }
+  return merged.filter((a) => a.enabled !== false)
 }
 
 function buildDefaultDuties(date, agents) {
