@@ -45,7 +45,7 @@ function SystemLine({ msg }: { msg: ChatMessage }) {
 function UserMessage({ msg }: { msg: ChatMessage }) {
   return (
     <FadeInMessage>
-      <div className="flex items-end justify-end gap-1.5 py-1 px-3">
+      <div className="flex items-end justify-end gap-1.5 py-1 px-3 w-full min-w-0 overflow-hidden">
         <div className="flex flex-col items-end gap-0.5 min-w-0" style={{ maxWidth: 'calc(100% - 40px)' }}>
           <span className="text-[12px] font-mono font-medium text-white/38 flex-shrink-0">
             {formatTime(msg.timestamp)}
@@ -77,7 +77,7 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
 
   return (
     <FadeInMessage>
-      <div className="flex items-end gap-1.5 py-1 px-3">
+      <div className="flex items-end gap-1.5 py-1 px-3 w-full min-w-0 overflow-hidden">
         <div
           className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-end mb-0.5"
           style={{
@@ -123,7 +123,7 @@ function OdinMessage({ msg, isLatest }: { msg: ChatMessage; isLatest: boolean })
             }
           >
             <pre
-              className="text-[14px] font-sans font-medium whitespace-pre-wrap leading-snug break-words"
+              className="text-[14px] font-sans font-medium whitespace-pre-wrap leading-snug break-words overflow-x-hidden max-w-full"
               style={{
                 color: isError
                   ? '#FF6B7A'
@@ -213,7 +213,7 @@ export default function ChatPanel() {
   }, [lastOdinMsg, latestId])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
   }, [visibleMessages, isLoading])
 
   return (
@@ -244,7 +244,7 @@ export default function ChatPanel() {
       <div className="mx-3" style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* 메시지 로그 — 남은 공간 모두 사용 */}
-      <div className="jarvis-chat-log flex-1 min-h-0 overflow-y-auto scrollbar-none relative py-1">
+      <div className="jarvis-chat-log flex-1 min-h-0 overflow-x-hidden overflow-y-auto scrollbar-none relative py-1">
         {visibleMessages.length === 0 && (
           <p className="text-center text-[12px] font-mono text-white/18 py-3 tracking-[0.14em] uppercase">
             {chatCategory === 'all' ? 'No conversation yet' : '해당 구분의 대화가 없습니다'}

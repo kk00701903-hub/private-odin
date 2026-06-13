@@ -304,6 +304,12 @@
     background: rgba(6, 8, 16, 0.55);
     border: var(--odin-border-w) solid rgba(255, 255, 255, 0.10);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* ── 메시지 버블 — 주인님(우) vs AI(좌) ── */

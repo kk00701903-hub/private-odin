@@ -111,7 +111,7 @@ function SlimHeader() {
    ─────────────────────────────────────── */
 function HomeView() {
   return (
-    <div className="flex-1 min-h-0 px-2 py-1">
+    <div className="flex-1 min-h-0 px-2 py-1 overflow-x-hidden">
       <ChatPanel />
     </div>
   )
