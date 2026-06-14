@@ -69,11 +69,10 @@ async function fetchVmMetrics(
   const memTotalGb = memTotal !== null ? bytesToGb(memTotal) : vm.fallback.memTotalGb
   const memUsedGb = memUsed !== null ? bytesToGb(memUsed) : vm.fallback.memUsedGb
   const cpuVal = Math.round(Math.max(0, cpu ?? 0))
-  const running = isUp && cpuVal > 0
 
   return {
     ...base,
-    status: running ? 'running' : isUp ? 'stopped' : 'unknown',
+    status: isUp ? 'running' : 'stopped',
     cpu: cpuVal,
     memUsedGb,
     memTotalGb: memTotalGb || vm.memMaxGb,

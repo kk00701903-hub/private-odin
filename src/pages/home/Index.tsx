@@ -1,18 +1,19 @@
 // @section: home-index — 슬림 헤더 + 탭 분기 레이아웃
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Moon, AlertTriangle, TrendingUp, TrendingDown, Volume2, VolumeX, Bell } from 'lucide-react'
+import { Moon, Volume2, VolumeX } from 'lucide-react'
 import ChatPanel from '@/components/odin/ChatPanel'
 import MobileWidgetBoard from '@/components/odin/MobileWidgetBoard'
 import OdinBottomNav from '@/components/odin/OdinBottomNav'
 import TaskQueueView from '@/components/odin/TaskQueueView'
 import SettingsView from '@/components/odin/SettingsView'
+import VmAlertsPanel from '@/components/odin/VmAlertsPanel'
 import JarvisHud from '@/components/JarvisHud'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
-import { BreathingDot, CYAN, VIOLET, AMBER } from '@/components/OdinCore'
+import { BreathingDot, CYAN, VIOLET } from '@/components/OdinCore'
 import { useOdinWakeStore } from '@/store/useOdinWakeStore'
 import { useSpeechStore } from '@/store/useSpeechStore'
-import { AI_PALETTE } from '@/lib/odinTheme'
+import { useVmAlertMonitor } from '@/hooks/useVmAlertMonitor'
 import FreyaLogo from '@/components/odin/FreyaLogo'
 
 /* ───────────────────────────────────────
@@ -120,56 +121,6 @@ function HomeView() {
 /* ───────────────────────────────────────
    MONITOR 탭 — VM 모니터링 (VM101 Prometheus)
    ─────────────────────────────────────── */
-
-function AlertList() {
-  const alerts = [
-    { id: 1, Icon: AlertTriangle, text: 'VM103 중지됨 — D-2h 일정 초과', color: AMBER,               time: '5분 전' },
-    { id: 2, Icon: null,          text: 'VM102 ACTIVE — Ollama 실행 중', color: CYAN,                time: '실시간' },
-    { id: 3, Icon: TrendingUp,    text: '파워로직스 +6.4% ▲',            color: AI_PALETTE.emerald,  time: '8분 전' },
-    { id: 4, Icon: TrendingDown,  text: 'SK바이오 -0.51% ▼',             color: AI_PALETTE.coral,    time: '23분 전' },
-  ]
-
-  return (
-    <div
-      className="mx-3 rounded-[18px] overflow-hidden"
-      style={{
-        background: 'rgba(18, 22, 38, 0.82)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1.5px solid rgba(255,255,255,0.14)',
-      }}
-    >
-      <div className="jarvis-card-header">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ background: AMBER, boxShadow: `0 0 6px ${AMBER}` }} />
-          <span className="jarvis-card-title" style={{ color: AMBER }}>Alerts</span>
-        </div>
-        <span className="text-[12px] font-mono text-white/25">{alerts.length} events</span>
-      </div>
-      <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        {alerts.map(({ id, Icon, text, color, time }) => (
-          <div key={id} className="flex items-center gap-3 px-4 py-3">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}12`, border: `1px solid ${color}25` }}
-            >
-              {Icon
-                ? <Icon className="w-3.5 h-3.5" style={{ color }} />
-                : <span className="w-2 h-2 rounded-full" style={{ background: color }} />
-              }
-            </div>
-            <span className="flex-1 text-[14px] font-sans text-white/70 leading-snug min-w-0">
-              {text}
-            </span>
-            <span className="text-[12px] font-mono text-white/25 flex-shrink-0">{time}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function MonitorView() {
   return (
     <div className="flex flex-col gap-3 px-3 py-2 overflow-y-auto scrollbar-none h-full">
@@ -190,20 +141,12 @@ function MonitorView() {
 }
 
 /* ───────────────────────────────────────
-   ALERTS 탭
+   ALERTS 탭 — VM 시작·중단·비정상 종료
    ─────────────────────────────────────── */
 function AlertsView() {
   return (
-    <div className="flex flex-col gap-3 px-3 py-2 overflow-y-auto scrollbar-none">
-      <AlertList />
-
-      {/* 빈 상태 힌트 */}
-      <div className="flex flex-col items-center justify-center py-12 gap-3 opacity-40">
-        <Bell className="w-10 h-10" style={{ color: VIOLET }} />
-        <p className="text-[13px] font-mono text-white/40 tracking-widest uppercase">
-          No more alerts
-        </p>
-      </div>
+    <div className="flex flex-col gap-3 px-3 py-2 overflow-y-auto scrollbar-none h-full">
+      <VmAlertsPanel />
     </div>
   )
 }
@@ -220,6 +163,7 @@ const TAB_TRANSITION = {
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('home')
+  useVmAlertMonitor()
 
   return (
     <div

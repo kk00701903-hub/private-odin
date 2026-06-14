@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import { Home, BarChart2, Bell, Settings, ClipboardList } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTaskStore } from '@/store/useTaskStore'
+import { useVmAlertStore } from '@/store/useVmAlertStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
 
 const CYAN   = AI_PALETTE.cyan
@@ -35,6 +36,7 @@ export default function OdinBottomNav({ active = 'home', onChange }: Props) {
   const requestPending = useTaskStore((s) =>
     s.tasks.filter((t) => t.type === 'request' && t.status === 'pending').length
   )
+  const vmAlertCount = useVmAlertStore((s) => s.alerts.length)
 
   return (
     <div className="flex items-center justify-center px-2 pb-1 pt-0.5" style={{ minHeight: 'var(--odin-nav-h)' }}>
@@ -54,15 +56,16 @@ export default function OdinBottomNav({ active = 'home', onChange }: Props) {
 
           /* 각 탭별 뱃지 */
           const badge =
-            id === 'alerts' ? true :
+            id === 'alerts' ? vmAlertCount > 0 :
             id === 'queue'  ? requestPending > 0 : false
 
           const badgeColor =
             id === 'queue'  ? CYAN :
-            id === 'alerts' ? VIOLET : VIOLET
+            id === 'alerts' ? AMBER : VIOLET
 
           const badgeLabel =
-            id === 'queue' && requestPending > 0 ? String(requestPending) : undefined
+            id === 'queue' && requestPending > 0 ? String(requestPending) :
+            id === 'alerts' && vmAlertCount > 0 ? String(vmAlertCount) : undefined
 
           return (
             <button
