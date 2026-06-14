@@ -20,23 +20,25 @@ function dutyStatusLabel(status: string) {
 
 interface Props {
   compact?: boolean
+  /** Task Queue "업무" 탭 내 전체 높이 스크롤 */
+  embedded?: boolean
 }
 
-export default function SubAgentDutiesPanel({ compact = false }: Props) {
+export default function SubAgentDutiesPanel({ compact = false, embedded = false }: Props) {
   const { dutyGroups, dutyDate, loading, fromServer, refresh } = useSubAgents()
   const hasDuties = dutyGroups.some((g) => g.duties.length > 0)
 
   return (
     <div
-      className="flex-shrink-0"
-      style={{ borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
+      className={embedded ? 'flex flex-col min-h-0 h-full' : 'flex-shrink-0'}
+      style={embedded ? undefined : { borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
     >
-      <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <Bot className="w-3.5 h-3.5 flex-shrink-0" style={{ color: AI_PALETTE.emerald }} />
           <div className="min-w-0">
             <p className="text-[13px] font-mono font-bold uppercase tracking-[0.16em] text-white/55">
-              금일 AI 서브에이전트 업무
+              {embedded ? '금일 팀장 업무' : '금일 AI 서브에이전트 업무'}
             </p>
             <p className="text-[12px] font-mono text-white/25 truncate">
               {dutyDate} · 서버 {fromServer ? '연동' : '미연동'}
@@ -57,7 +59,7 @@ export default function SubAgentDutiesPanel({ compact = false }: Props) {
         </button>
       </div>
 
-      <div className={`px-3 ${compact ? 'pb-2' : 'pb-3'} flex flex-col gap-2`}>
+      <div className={`px-3 ${compact ? 'pb-2' : 'pb-3'} flex flex-col gap-2 ${embedded ? 'flex-1 min-h-0 overflow-y-auto scrollbar-none' : ''}`}>
         {loading && !hasDuties ? (
           <p className="text-[13px] font-mono text-white/25 text-center py-3">불러오는 중…</p>
         ) : !fromServer ? (

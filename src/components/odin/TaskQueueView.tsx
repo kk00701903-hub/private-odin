@@ -1,18 +1,27 @@
 // @section: task-queue-view — 오딘 과제 큐
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, CheckCircle2, Circle, Trash2, SendHorizonal, StickyNote, MessageSquarePlus, ClipboardList } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Trash2, SendHorizonal, StickyNote, MessageSquarePlus, ClipboardList, Bot } from 'lucide-react'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTaskStore, Task, TaskType } from '@/store/useTaskStore'
 import { useChatStore } from '@/store/useChatStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
 import SubAgentDutiesPanel from '@/components/odin/SubAgentDutiesPanel'
+import { useSubAgents } from '@/hooks/useSubAgents'
 
 const CYAN   = AI_PALETTE.cyan
 const VIOLET = AI_PALETTE.violet
 const AMBER  = AI_PALETTE.amber
 const EMERALD = AI_PALETTE.emerald
+
+type QueueTab = 'duties' | 'request' | 'memo'
+
+const QUEUE_TABS: { id: QueueTab; label: string; accent: string }[] = [
+  { id: 'duties',  label: '업무', accent: EMERALD },
+  { id: 'request', label: '요청', accent: CYAN },
+  { id: 'memo',    label: '메모', accent: VIOLET },
+]
 
 /* ── 날짜 레이블 포맷 ── */
 function formatDateLabel(iso: string): string {
@@ -163,26 +172,42 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
   const deleteTask   = useTaskStore((s) => s.deleteTask)
   const dispatchToOdin = useTaskStore((s) => s.dispatchToOdin)
   const sendMessage  = useChatStore((s) => s.sendMessage)
+  const { dutyGroups } = useSubAgents()
 
+  const [activeTab, setActiveTab] = useState<QueueTab>('duties')
   const [input, setInput]     = useState('')
-  const [type, setType]       = useState<TaskType>('request')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [showPending, setShowPending] = useState<'all' | 'pending'>('all')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const taskType: TaskType = activeTab === 'memo' ? 'memo' : 'request'
+
   /* 전체 통계 */
   const pendingCount   = tasks.filter((t) => t.status === 'pending').length
   const requestPending = tasks.filter((t) => t.type === 'request' && t.status === 'pending').length
+  const memoCount      = tasks.filter((t) => t.type === 'memo').length
+  const dutyPending    = dutyGroups.reduce(
+    (n, g) => n + g.duties.filter((d) => d.status !== 'completed').length,
+    0,
+  )
 
-  /* 필터링 */
-  const filtered = tasks.filter((t) => {
+  const tabBadge = (tab: QueueTab) => {
+    if (tab === 'duties') return dutyPending > 0 ? dutyPending : null
+    if (tab === 'request') return requestPending > 0 ? requestPending : null
+    return memoCount > 0 ? memoCount : null
+  }
+
+  /* 필터링 — 요청/메모 탭만 */
+  const typeFiltered = tasks.filter((t) => t.type === taskType)
+
+  const filtered = typeFiltered.filter((t) => {
     if (showPending === 'pending' && t.status !== 'pending') return false
     if (dateFilter && dateKey(t.createdAt) !== dateFilter) return false
     return true
   })
 
   /* 날짜별 그룹: 최신 날짜 → 오래된 날짜 */
-  const uniqueDates = [...new Set(tasks.map((t) => dateKey(t.createdAt)))].sort().reverse()
+  const uniqueDates = [...new Set(typeFiltered.map((t) => dateKey(t.createdAt)))].sort().reverse()
 
   /* 날짜 그룹화 (필터 적용 후) */
   const grouped = uniqueDates
@@ -201,11 +226,11 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
     .filter((g) => g.items.length > 0)
 
   const handleAdd = useCallback(() => {
-    if (!input.trim()) return
-    addTask(input, type)
+    if (!input.trim() || activeTab === 'duties') return
+    addTask(input, taskType)
     setInput('')
     textareaRef.current?.focus()
-  }, [input, type, addTask])
+  }, [input, taskType, addTask, activeTab])
 
   const handleSend = useCallback((id: string) => {
     const text = dispatchToOdin(id)
@@ -228,7 +253,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
           <span className="jarvis-card-title" style={{ color: CYAN }}>Task Queue</span>
         </div>
         <div className="flex items-center gap-1.5">
-          {requestPending > 0 && (
+          {activeTab === 'request' && requestPending > 0 && (
             <span
               className="px-2 py-0.5 rounded-full text-[12px] font-mono font-bold"
               style={{ background: `${CYAN}18`, border: `1px solid ${CYAN}30`, color: CYAN }}
@@ -236,7 +261,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
               {requestPending} 대기
             </span>
           )}
-          {pendingCount > 0 && (
+          {activeTab !== 'duties' && pendingCount > 0 && (
             <span
               className="px-2 py-0.5 rounded-full text-[12px] font-mono"
               style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}
@@ -244,38 +269,73 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
               총 {pendingCount} 미완료
             </span>
           )}
+          {activeTab === 'duties' && dutyPending > 0 && (
+            <span
+              className="px-2 py-0.5 rounded-full text-[12px] font-mono font-bold"
+              style={{ background: `${EMERALD}18`, border: `1px solid ${EMERALD}30`, color: EMERALD }}
+            >
+              {dutyPending} 진행
+            </span>
+          )}
         </div>
       </div>
 
-      {/* ── 금일 서브에이전트 자율 업무 ── */}
-      <SubAgentDutiesPanel />
+      {/* ── 업무 / 요청 / 메모 탭 ── */}
+      <div
+        className="grid grid-cols-3 gap-1.5 px-3 py-2 flex-shrink-0"
+        style={{ borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
+      >
+        {QUEUE_TABS.map(({ id, label, accent }) => {
+          const active = activeTab === id
+          const badge = tabBadge(id)
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setActiveTab(id)
+                setDateFilter(null)
+              }}
+              className="relative flex items-center justify-center gap-1 py-2 rounded-[12px] text-[13px] font-mono font-semibold transition-all"
+              style={
+                active
+                  ? { background: `${accent}18`, border: `1px solid ${accent}45`, color: accent }
+                  : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.38)' }
+              }
+            >
+              {id === 'duties' && <Bot className="w-3 h-3 flex-shrink-0" />}
+              {id === 'request' && <MessageSquarePlus className="w-3 h-3 flex-shrink-0" />}
+              {id === 'memo' && <StickyNote className="w-3 h-3 flex-shrink-0" />}
+              {label}
+              {badge != null && (
+                <span
+                  className="ml-0.5 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold leading-4"
+                  style={{ background: `${accent}25`, color: accent }}
+                >
+                  {badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
+      {/* ── 업무 탭: 서브에이전트 금일 업무 ── */}
+      {activeTab === 'duties' && (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <SubAgentDutiesPanel embedded />
+        </div>
+      )}
+
+      {/* ── 요청 / 메모 탭 ── */}
+      {activeTab !== 'duties' && (
+        <>
       {/* ── 입력 폼 ── */}
       <div
         className="px-3 py-2.5 flex-shrink-0"
         style={{ borderBottom: '1.5px solid rgba(255,255,255,0.12)' }}
       >
-        {/* 타입 선택 */}
         <div className="flex gap-1.5 mb-2">
-          {(['request', 'memo'] as TaskType[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[13px] font-mono font-semibold uppercase tracking-wider transition-all"
-              style={
-                type === t
-                  ? t === 'request'
-                    ? { background: `${CYAN}20`, border: `1px solid ${CYAN}40`, color: CYAN }
-                    : { background: `${VIOLET}18`, border: `1px solid ${VIOLET}35`, color: VIOLET }
-                  : { background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.3)' }
-              }
-            >
-              {t === 'request'
-                ? <><MessageSquarePlus className="w-3 h-3" />요청</>
-                : <><StickyNote className="w-3 h-3" />메모</>
-              }
-            </button>
-          ))}
           <div className="flex-1" />
           {/* 미완료만 보기 토글 */}
           <button
@@ -296,7 +356,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
           className="flex items-end gap-2 rounded-[14px] px-3 py-2"
           style={{
             background: 'rgba(255,255,255,0.04)',
-            border: `1px solid ${type === 'request' ? `${CYAN}25` : `${VIOLET}22`}`,
+            border: `1px solid ${taskType === 'request' ? `${CYAN}25` : `${VIOLET}22`}`,
           }}
         >
           <textarea
@@ -308,7 +368,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
             }}
             rows={2}
             placeholder={
-              type === 'request'
+              taskType === 'request'
                 ? '프레이야에게 요청할 내용을 입력하세요… (Enter로 추가)'
                 : '메모할 내용을 입력하세요… (Enter로 추가)'
             }
@@ -320,7 +380,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-25 transition-all mb-0.5"
             style={
               input.trim()
-                ? type === 'request'
+                ? taskType === 'request'
                   ? { background: `linear-gradient(135deg, ${AI_PALETTE.blue}, ${CYAN})`, boxShadow: `0 4px 12px ${CYAN}30` }
                   : { background: `linear-gradient(135deg, ${VIOLET}, ${AI_PALETTE.purple})`, boxShadow: `0 4px 12px ${VIOLET}30` }
                 : { background: 'rgba(255,255,255,0.06)', border: '1.5px solid rgba(255,255,255,0.16)' }
@@ -350,7 +410,7 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
             전체
           </button>
           {uniqueDates.map((d) => {
-            const cnt = tasks.filter((t) => dateKey(t.createdAt) === d).length
+            const cnt = typeFiltered.filter((t) => dateKey(t.createdAt) === d).length
             return (
               <button
                 key={d}
@@ -378,7 +438,9 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
               {showPending === 'pending' ? '미완료 과제 없음' : '등록된 과제 없음'}
             </p>
             <p className="text-[13px] font-sans text-white/25 text-center px-8">
-              위 입력창에서 요청이나 메모를 추가하세요
+              {taskType === 'request'
+                ? '위 입력창에서 프레이야에게 요청을 추가하세요'
+                : '위 입력창에서 메모를 추가하세요'}
             </p>
           </div>
         ) : (
@@ -402,6 +464,8 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
           </AnimatePresence>
         )}
       </div>
+        </>
+      )}
     </div>
   )
 }
