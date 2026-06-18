@@ -9,6 +9,7 @@ import { useChatStore } from '@/store/useChatStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
 import SubAgentDutiesPanel from '@/components/odin/SubAgentDutiesPanel'
 import DesignAgentDashboard from '@/components/odin/DesignAgentDashboard'
+import ServerCheckReportsPanel from '@/components/odin/ServerCheckReportsPanel'
 import { useSubAgents } from '@/hooks/useSubAgents'
 
 const CYAN   = AI_PALETTE.cyan
@@ -367,11 +368,10 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
 
       {/* ── 업무 탭: 서브에이전트 금일 업무 ── */}
       {activeTab === 'duties' && (
-        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none">
           <DesignAgentDashboard />
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <SubAgentDutiesPanel embedded />
-          </div>
+          <ServerCheckReportsPanel />
+          <SubAgentDutiesPanel compact />
         </div>
       )}
 

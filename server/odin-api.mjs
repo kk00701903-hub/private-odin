@@ -20,11 +20,13 @@ import path from 'node:path'
 import dgram from 'node:dgram'
 import { fileURLToPath } from 'node:url'
 import { askClaudeCode, isClaudeBridgeEnabled, checkAiAuth } from './lib/claudeBridge.mjs'
+import { createServerCheckReports } from './lib/serverCheckReports.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.ODIN_API_PORT) || 8790
 const DATA_DIR = process.env.ODIN_DATA_DIR || path.join(__dirname, '..', 'data', 'odin-db')
 const TZ = 'Asia/Seoul'
+const serverCheckReports = createServerCheckReports({ dataDir: DATA_DIR, tz: TZ })
 const DATABASE_URL = process.env.DATABASE_URL ?? ''
 const PROMETHEUS_URL = (process.env.PROMETHEUS_URL ?? 'http://127.0.0.1:9090').replace(/\/$/, '')
 const WOL_MAC = process.env.WOL_MAC ?? ''
@@ -60,6 +62,7 @@ async function initPostgres() {
 async function ensureDataDir() {
   await fs.mkdir(path.join(DATA_DIR, 'chat'), { recursive: true })
   await fs.mkdir(path.join(DATA_DIR, 'agent-duties'), { recursive: true })
+  await serverCheckReports.ensureDir()
 }
 
 function corsHeaders(origin) {
@@ -75,6 +78,11 @@ function corsHeaders(origin) {
 function sendJson(res, status, body, origin) {
   res.writeHead(status, { 'Content-Type': 'application/json', ...corsHeaders(origin) })
   res.end(JSON.stringify(body))
+}
+
+function sendFile(res, status, stream, headers, origin) {
+  res.writeHead(status, { ...headers, ...corsHeaders(origin) })
+  stream.pipe(res)
 }
 
 async function readBody(req) {
@@ -634,6 +642,39 @@ const server = http.createServer(async (req, res) => {
         createdAt: job.createdAt,
         completedAt: job.completedAt ?? undefined,
       }, origin)
+      return
+    }
+
+    /* server check reports — 매일 09:00 운영팀장 */
+    if (req.method === 'GET' && url.pathname === '/reports/server-check') {
+      const reports = await serverCheckReports.listReports()
+      sendJson(res, 200, {
+        reports,
+        schedule: serverCheckReports.schedule,
+        timezone: serverCheckReports.timezone,
+      }, origin)
+      return
+    }
+    const serverCheckFileMatch = url.pathname.match(/^\/reports\/server-check\/([^/]+)\/file$/)
+    if (req.method === 'GET' && serverCheckFileMatch) {
+      const id = decodeURIComponent(serverCheckFileMatch[1])
+      const resolved = await serverCheckReports.streamReportFile(id)
+      if (!resolved) {
+        sendJson(res, 404, { error: 'report not found' }, origin)
+        return
+      }
+      const download = url.searchParams.get('download') === '1'
+      const mime = serverCheckReports.mimeForFile(resolved.filename)
+      sendFile(
+        res,
+        200,
+        serverCheckReports.createReadStream(resolved.filepath),
+        {
+          'Content-Type': mime,
+          'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${resolved.filename}"`,
+        },
+        origin,
+      )
       return
     }
 
