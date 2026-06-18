@@ -7,7 +7,7 @@ import { useOdinSettingsStore } from '@/store/useOdinSettingsStore'
 import { rescheduleIdleSleepTimer } from '@/store/useOdinWakeStore'
 import { formatStandbyLabel, formatTypingLabel } from '@/lib/odinAssistantSpeed'
 import { AI_PALETTE } from '@/lib/odinTheme'
-import { APP_NAME, APP_NAME_EN } from '@/lib/appBrand'
+import { APP_NAME, APP_NAME_EN, AI_NAME } from '@/lib/appBrand'
 import {
   SettingsGroup,
   SettingsRow,
@@ -120,12 +120,12 @@ export default function SettingsView() {
           />
         </SettingsGroup>
 
-        <SettingsGroup title="인프라" footer="LangGraph · Claude Code / Qwen 2.5 3B 서브에이전트">
+        <SettingsGroup title="인프라" footer="LangGraph · Claude Code / Qwen / 디자인 팀장(서버 PC)">
           <SettingsNasWakeRow />
           <SettingsSubAgentsRows />
         </SettingsGroup>
 
-        <SettingsGroup title="도움말" footer="VM 접속·Claude Code 운영 가이드">
+        <SettingsGroup title="도움말" footer="Linux PC 배포·VM 접속·Claude Code 운영 가이드">
           <SettingsManualGroup />
         </SettingsGroup>
 
@@ -142,7 +142,7 @@ export default function SettingsView() {
           >
             {APP_NAME_EN}
           </motion.span>
-          <span className="text-[12px] font-sans text-white/40">{APP_NAME} v1.0.0 · PWA</span>
+          <span className="text-[12px] font-sans text-white/40">{APP_NAME} v1.0.0 · {AI_NAME} AI · PWA</span>
         </footer>
       </div>
     </div>

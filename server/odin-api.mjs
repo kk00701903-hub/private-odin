@@ -227,6 +227,7 @@ const DEFAULT_SUB_AGENTS = [
   { id: 'development', name: '개발팀장', category: 'development', description: 'LangGraph → Claude Code · 앱·API·자동화 스크립트', sortOrder: 3, enabled: true },
   { id: 'ops', name: '운영팀장', category: 'ops', description: 'LangGraph → Claude Code · 배포·알림·일일 점검', sortOrder: 4, enabled: true },
   { id: 'secretary', name: '비서실장', category: 'secretary', description: 'LangGraph → Qwen 2.5 3B · 일상 대화·스케줄·리마인더', sortOrder: 5, enabled: true },
+  { id: 'design', name: '디자인팀장', category: 'design', description: 'LangGraph → 서버 PC · 보고서·시각화·Obsidian 위키', sortOrder: 6, enabled: true },
 ]
 
 const DEFAULT_DUTY_TEMPLATES = {
@@ -250,6 +251,53 @@ const DEFAULT_DUTY_TEMPLATES = {
     '주인님 일정·리마인더 확인 및 정리',
     '일상 대화·메모 요약 (Qwen 2.5 3B)',
   ],
+  design: [
+    '개발·IT설계 팀장 로그 → 주간 보고서 초안 작성',
+    '야간 UI 레퍼런스 위키 반영 검토',
+  ],
+}
+
+/* ── Design agent jobs (스텁 — 서버 PC LangGraph로 교체) ── */
+const DESIGN_TOKEN_LIMIT = Number(process.env.DESIGN_AGENT_TOKEN_LIMIT) || 50_000
+const designJobs = new Map()
+
+function designJobId() {
+  return `design-job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function getDesignAgentStatusStub() {
+  const working = [...designJobs.values()].some((j) => j.status === 'running' || j.status === 'queued')
+  return {
+    status: working ? 'working' : 'standby',
+    tokenUsed: 0,
+    tokenLimit: DESIGN_TOKEN_LIMIT,
+    wikiUpdates: [],
+    lastNightRun: null,
+  }
+}
+
+async function simulateDesignJob(jobId, brief) {
+  const job = designJobs.get(jobId)
+  if (!job) return
+  job.status = 'running'
+  job.progress = 10
+  await new Promise((r) => setTimeout(r, 800))
+  job.progress = 60
+  await new Promise((r) => setTimeout(r, 600))
+  job.status = 'completed'
+  job.progress = 100
+  job.completedAt = new Date().toISOString()
+  job.outputMarkdown = `# 보고서 초안 (스텁)
+
+## Executive Summary
+- 주인님, 요청하신 보고서 초안입니다. 서버 PC LangGraph 연동 후 실제 산출물로 대체됩니다.
+
+## 요청 요약
+${brief.slice(0, 500)}${brief.length > 500 ? '…' : ''}
+
+## 다음 단계
+- Obsidian \`Reports/\`에 저장 (서버 PC)
+`
 }
 
 function agentsFile() {
@@ -537,6 +585,55 @@ const server = http.createServer(async (req, res) => {
         return
       }
       sendJson(res, 200, await getAgentDailyDuties(date), origin)
+      return
+    }
+
+    /* design team leader — status / jobs (스텁) */
+    if (req.method === 'GET' && url.pathname === '/agents/design/status') {
+      sendJson(res, 200, getDesignAgentStatusStub(), origin)
+      return
+    }
+    if (req.method === 'POST' && url.pathname === '/agents/design/jobs') {
+      const payload = await readBody(req)
+      const brief = payload.brief ?? payload.message ?? ''
+      if (!brief || typeof brief !== 'string') {
+        sendJson(res, 400, { error: 'brief required' }, origin)
+        return
+      }
+      const jobId = designJobId()
+      const job = {
+        jobId,
+        status: 'queued',
+        progress: 0,
+        brief,
+        sourceAgentIds: payload.sourceAgentIds ?? [],
+        outputFormat: payload.outputFormat ?? 'report',
+        createdAt: new Date().toISOString(),
+        completedAt: null,
+        outputMarkdown: null,
+        error: null,
+      }
+      designJobs.set(jobId, job)
+      void simulateDesignJob(jobId, brief)
+      sendJson(res, 200, { jobId, status: 'queued' }, origin)
+      return
+    }
+    const designJobMatch = url.pathname.match(/^\/agents\/design\/jobs\/([^/]+)$/)
+    if (req.method === 'GET' && designJobMatch) {
+      const job = designJobs.get(designJobMatch[1])
+      if (!job) {
+        sendJson(res, 404, { error: 'job not found' }, origin)
+        return
+      }
+      sendJson(res, 200, {
+        jobId: job.jobId,
+        status: job.status,
+        progress: job.progress,
+        outputMarkdown: job.outputMarkdown ?? undefined,
+        error: job.error ?? undefined,
+        createdAt: job.createdAt,
+        completedAt: job.completedAt ?? undefined,
+      }, origin)
       return
     }
 

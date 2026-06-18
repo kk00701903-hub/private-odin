@@ -1,4 +1,4 @@
-// @section: freya-logo — 헤더·브랜딩용 앱 아이콘
+// @section: app-logo — 헤더·브랜딩용 Odin 앱 아이콘
 import { APP_NAME } from '@/lib/appBrand'
 import { AI_PALETTE } from '@/lib/odinTheme'
 

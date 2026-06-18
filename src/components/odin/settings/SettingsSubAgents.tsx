@@ -12,6 +12,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   development: AI_PALETTE.blue,
   ops: AI_PALETTE.amber,
   secretary: AI_PALETTE.emerald,
+  design: AI_PALETTE.rose,
 }
 
 function AgentRow({
@@ -82,37 +83,36 @@ export function SettingsSubAgentsRows() {
   const { agents, dutyGroups, loading, fromServer } = useSubAgents()
   const dutyCountByAgent = new Map(dutyGroups.map((g) => [g.agent.id, g.duties.length]))
 
-  if (loading && !agents.length) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-6 text-white/30">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span className="text-[14px] font-sans">불러오는 중…</span>
-      </div>
-    )
-  }
-
-  if (!fromServer) {
-    return (
-      <div className="px-4 py-4">
-        <p className="text-[14px] font-sans text-white/35 leading-relaxed text-center">
-          NAS API 연결 시 서브에이전트 구성이 표시됩니다.
-        </p>
-      </div>
-    )
-  }
-
   return (
     <>
-      {agents.map((agent) => (
-        <AgentRow
-          key={agent.id}
-          id={agent.id}
-          name={agent.name}
-          category={agent.category}
-          description={agent.description}
-          dutyCount={dutyCountByAgent.get(agent.id) ?? 0}
-        />
-      ))}
+      <div className="px-4 py-2 border-b border-white/[0.06]">
+        <span
+          className="text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+          style={{
+            background: fromServer ? `${AI_PALETTE.emerald}15` : 'rgba(255,255,255,0.06)',
+            color: fromServer ? AI_PALETTE.emerald : 'rgba(255,255,255,0.35)',
+          }}
+        >
+          {fromServer ? '서버 연동' : '오프라인 · 로컬 목록'}
+        </span>
+      </div>
+      {loading && agents.length === 0 ? (
+        <div className="flex items-center justify-center gap-2 py-6 text-white/30">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-[14px] font-sans">불러오는 중…</span>
+        </div>
+      ) : (
+        agents.map((agent) => (
+          <AgentRow
+            key={agent.id}
+            id={agent.id}
+            name={agent.name}
+            category={agent.category}
+            description={agent.description}
+            dutyCount={dutyCountByAgent.get(agent.id) ?? 0}
+          />
+        ))
+      )}
     </>
   )
 }

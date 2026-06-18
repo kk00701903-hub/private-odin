@@ -18,9 +18,49 @@ export interface ManualEntry {
   vm?: string
   description: string
   commands: ManualCommand[]
+  /** 여러 명령을 스크립트 한 덩어리로 복사 */
+  copyAllScript?: string
 }
 
 export const MANUAL_ENTRIES: ManualEntry[] = [
+  {
+    id: 'freya-deploy',
+    title: '프레이야 배포 (한 번에 복사)',
+    vm: 'Linux PC',
+    description:
+      'git pull → 백엔드(freya-api) 재시작 → 프론트 빌드 순서입니다. npm run build 후 dist/가 반영되면 odin-pwa 재시작은 필요 없습니다.',
+    commands: [
+      { cmd: 'cd /srv/app-workspace/private-odin', desc: '1. 코드 pull' },
+      { cmd: 'git pull origin main', desc: '' },
+      { cmd: 'cd server && npm install --omit=dev', desc: '2. 백엔드 재시작' },
+      { cmd: 'systemctl restart freya-api', desc: '' },
+      { cmd: 'cd /srv/app-workspace/private-odin', desc: '3. 프론트엔드 빌드' },
+      { cmd: 'npm install', desc: '' },
+      { cmd: 'npm run build', desc: 'dist/ 자동 반영' },
+    ],
+    copyAllScript: `# 1. 코드 pull
+cd /srv/app-workspace/private-odin
+git pull origin main
+
+# 2. 백엔드 재시작
+cd server && npm install --omit=dev
+systemctl restart freya-api
+
+# 3. 프론트엔드 빌드 (dist/ 자동 반영, odin-pwa 재시작 불필요)
+cd /srv/app-workspace/private-odin
+npm install
+npm run build`,
+  },
+  {
+    id: 'freya-verify',
+    title: '배포 확인',
+    vm: 'Linux PC',
+    description: '배포 후 freya-api·odin-pwa 서비스 상태와 API 응답을 확인합니다.',
+    commands: [
+      { cmd: 'systemctl status freya-api odin-pwa --no-pager', desc: '서비스 상태 확인' },
+      { cmd: 'curl -s http://127.0.0.1:8790/agents | python3 -m json.tool', desc: 'API 응답 확인' },
+    ],
+  },
   {
     id: 'vm101-claude',
     title: 'Claude CLI 재개 실행',
@@ -90,6 +130,15 @@ function CmdBlock({ cmd, desc }: ManualCommand) {
 
 function ManualEntryRow({ entry }: { entry: ManualEntry }) {
   const [open, setOpen] = useState(false)
+  const [copiedAll, setCopiedAll] = useState(false)
+
+  function handleCopyAll() {
+    if (!entry.copyAllScript) return
+    void navigator.clipboard.writeText(entry.copyAllScript).then(() => {
+      setCopiedAll(true)
+      setTimeout(() => setCopiedAll(false), 1800)
+    })
+  }
 
   return (
     <>
@@ -133,6 +182,23 @@ function ManualEntryRow({ entry }: { entry: ManualEntry }) {
                 <p className="text-[13px] font-sans text-white/40 leading-relaxed pt-1">
                   {entry.description}
                 </p>
+              )}
+              {entry.copyAllScript && (
+                <button
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[13px] font-mono font-semibold transition-colors"
+                  style={{
+                    background: copiedAll ? `${AI_PALETTE.emerald}18` : `${CYAN}12`,
+                    border: `1px solid ${copiedAll ? AI_PALETTE.emerald + '40' : CYAN + '35'}`,
+                    color: copiedAll ? AI_PALETTE.emerald : CYAN,
+                  }}
+                >
+                  {copiedAll
+                    ? <><Check className="w-3.5 h-3.5" /> 복사됨</>
+                    : <><Copy className="w-3.5 h-3.5" /> 배포 명령 전체 복사</>
+                  }
+                </button>
               )}
               {entry.commands.map((c, i) => (
                 <CmdBlock key={i} {...c} />

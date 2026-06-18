@@ -1,13 +1,14 @@
 // @section: task-queue-view — 오딘 과제 큐
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, CheckCircle2, Circle, Trash2, SendHorizonal, StickyNote, MessageSquarePlus, ClipboardList, Bot } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Trash2, SendHorizonal, StickyNote, MessageSquarePlus, ClipboardList, Bot, Copy, Check } from 'lucide-react'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTaskStore, Task, TaskType } from '@/store/useTaskStore'
 import { useChatStore } from '@/store/useChatStore'
 import { AI_PALETTE } from '@/lib/odinTheme'
 import SubAgentDutiesPanel from '@/components/odin/SubAgentDutiesPanel'
+import DesignAgentDashboard from '@/components/odin/DesignAgentDashboard'
 import { useSubAgents } from '@/hooks/useSubAgents'
 
 const CYAN   = AI_PALETTE.cyan
@@ -57,6 +58,44 @@ function TypeBadge({ type }: { type: TaskType }) {
   )
 }
 
+/* ── 메모 미리보기 (상단 2줄) ── */
+function memoPreview(content: string) {
+  const lines = content.split(/\r?\n/)
+  return {
+    text: lines.slice(0, 2).join('\n'),
+    hasMore: lines.length > 2,
+  }
+}
+
+function MemoCopyButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    void navigator.clipboard.writeText(content).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="w-7 h-7 rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+      style={{
+        background: copied ? `${EMERALD}18` : `${VIOLET}15`,
+        border: `1px solid ${copied ? EMERALD + '40' : VIOLET + '28'}`,
+      }}
+      title="메모 전체 복사"
+    >
+      {copied
+        ? <Check className="w-3.5 h-3.5" style={{ color: EMERALD }} />
+        : <Copy className="w-3.5 h-3.5" style={{ color: VIOLET }} />
+      }
+    </button>
+  )
+}
+
 /* ── 개별 과제 행 ── */
 function TaskRow({
   task,
@@ -70,6 +109,8 @@ function TaskRow({
   onSend: () => void
 }) {
   const isDone = task.status === 'completed'
+  const isMemo = task.type === 'memo'
+  const preview = isMemo ? memoPreview(task.content) : null
 
   return (
     <motion.div
@@ -107,19 +148,23 @@ function TaskRow({
           )}
         </div>
         <p
-          className="text-[15px] font-sans leading-snug break-words"
+          className={`text-[15px] font-sans leading-snug break-words ${isMemo ? 'line-clamp-2 whitespace-pre-line' : ''}`}
           style={{
             color: isDone ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.82)',
             textDecoration: isDone ? 'line-through' : 'none',
             textDecorationColor: 'rgba(255,255,255,0.2)',
           }}
         >
-          {task.content}
+          {isMemo ? preview!.text : task.content}
+          {isMemo && preview!.hasMore && (
+            <span className="text-white/30"> …</span>
+          )}
         </p>
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className={`flex items-center gap-1 flex-shrink-0 ${isMemo ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+        {isMemo && <MemoCopyButton content={task.content} />}
         {/* REQUEST이고 미완료면 오딘 전송 버튼 */}
         {task.type === 'request' && !isDone && (
           <button
@@ -322,8 +367,11 @@ export default function TaskQueueView({ onNavigateHome }: Props) {
 
       {/* ── 업무 탭: 서브에이전트 금일 업무 ── */}
       {activeTab === 'duties' && (
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <SubAgentDutiesPanel embedded />
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          <DesignAgentDashboard />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <SubAgentDutiesPanel embedded />
+          </div>
         </div>
       )}
 

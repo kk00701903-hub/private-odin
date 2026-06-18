@@ -1,6 +1,7 @@
 // @section: sub-agents-hook — 서버 AI 서브에이전트·금일 업무 로드
 import { useCallback, useEffect, useState } from 'react'
 import { fetchAgentDutiesFromServer, fetchSubAgentsFromServer } from '@/api/subAgents'
+import { mergeSubAgentsWithRegistry, SUB_AGENTS_REGISTRY } from '@/data/subAgentsRegistry'
 import { getDateKey } from '@/lib/chatDate'
 import type { AgentDailyDuty, SubAgent } from '@/types/subAgents'
 
@@ -39,26 +40,21 @@ export function useSubAgents() {
       fetchAgentDutiesFromServer(today),
     ])
 
-    if (agentList?.length) {
-      setAgents(agentList)
-      setFromServer(true)
-    } else if (dutiesPayload?.agents?.length) {
-      setAgents(dutiesPayload.agents)
-      setFromServer(true)
-    } else {
-      setAgents([])
-      setFromServer(false)
-    }
+    const mergedAgents = mergeSubAgentsWithRegistry(
+      agentList?.length ? agentList : dutiesPayload?.agents,
+    )
+    setAgents(mergedAgents)
+    setFromServer(Boolean(agentList?.length || dutiesPayload))
 
     if (dutiesPayload) {
       setDutyDate(dutiesPayload.date)
-      setDutyGroups(groupDutiesByAgent(dutiesPayload.agents, dutiesPayload.duties))
-      setFromServer(true)
+      setDutyGroups(groupDutiesByAgent(mergedAgents, dutiesPayload.duties))
     } else if (agentList?.length) {
       setDutyDate(today)
-      setDutyGroups(groupDutiesByAgent(agentList, []))
+      setDutyGroups(groupDutiesByAgent(mergedAgents, []))
     } else {
-      setDutyGroups([])
+      setDutyDate(today)
+      setDutyGroups(groupDutiesByAgent(SUB_AGENTS_REGISTRY, []))
     }
 
     setLoading(false)

@@ -112,11 +112,26 @@ private-odin/
 
 ### 4. 서브 에이전트 & 일일 업무
 
+| 팀장 | id | 백엔드 |
+|------|-----|--------|
+| 인프라팀장 | `infra` | Claude Code |
+| IT설계팀장 | `planning` | Claude Code |
+| 개발팀장 | `development` | Claude Code |
+| 운영팀장 | `ops` | Claude Code |
+| 비서실장 | `secretary` | Qwen 2.5 3B |
+| **디자인팀장** | `design` | LangGraph (서버 PC) |
+
 | 파일 | 역할 |
 |------|------|
+| `src/data/subAgentsRegistry.ts` | 정적 6인 목록 (API 무관, 설정 항상 표시) |
 | `src/components/odin/SubAgentDutiesPanel.tsx` | 에이전트별 당일 업무 |
+| `src/components/odin/DesignAgentDashboard.tsx` | 디자인 팀장 대시보드 (QUEUE > 업무) |
 | `src/hooks/useSubAgents.ts` | 에이전트·업무 fetch |
+| `src/hooks/useDesignAgent.ts` | 디자인 상태·보고서 Job |
 | `src/api/subAgents.ts` | `GET /agents`, `/agents/duties` |
+| `src/api/designAgent.ts` | `GET /agents/design/status`, Job API |
+| `docs/agents/design_team_leader.md` | 디자인 팀장 시스템 프롬프트 |
+| `docs/DESIGN_AGENT_API.md` | 서버 PC 연동 API 규격 |
 
 DB 테이블: `sub_agents`, `agent_daily_duties` (`server/schema.sql`)
 
@@ -169,6 +184,9 @@ Prometheus는 odin-api의 `/prometheus/*` 프록시로 CORS 우회.
 | GET/PUT | `/settings` | 앱 설정 |
 | GET | `/agents` | 서브 에이전트 목록 |
 | GET | `/agents/duties?date=` | 일일 업무 |
+| GET | `/agents/design/status` | 디자인 팀장 상태·토큰·위키 |
+| POST | `/agents/design/jobs` | 보고서 제작 Job 생성 |
+| GET | `/agents/design/jobs/:id` | Job 진행·결과 |
 | POST | `/wake`, `/wol/wake` | Wake-on-LAN |
 | GET | `/prometheus/*` | Prometheus 프록시 |
 | POST | `/ai/chat`, `/webhook/odin` | Claude Code AI (브릿지) |
@@ -190,6 +208,7 @@ Prometheus는 odin-api의 `/prometheus/*` 프록시로 CORS 우회.
 | `VITE_ODIN_AI_API_KEY` | `/ai/chat` 인증 (선택) |
 | `VITE_N8N_WEBHOOK_URL` | n8n 웹훅 (Claude 대신) |
 | `VITE_PROMETHEUS_URL` | Prometheus 직접 URL (선택) |
+| `VITE_DESIGN_AGENT_WS` | 디자인 Job WebSocket (선택, 기본 REST) |
 
 `VITE_ODIN_API_URL`만 설정해도 채팅은 자동으로 `{URL}/ai/chat` 사용 (`src/lib/odinApiBase.ts`).
 
@@ -327,6 +346,8 @@ NAS 동기화 훅: `useOdinDbSync`, `useChatArchiveSync`
 | 문서 | 내용 |
 |------|------|
 | [`docs/LINUX_CLAUDE_DEPLOYMENT.md`](docs/LINUX_CLAUDE_DEPLOYMENT.md) | 리눅스 배포 전체 |
+| [`docs/DESIGN_AGENT_API.md`](docs/DESIGN_AGENT_API.md) | 디자인 팀장 API (서버 PC) |
+| [`docs/agents/design_team_leader.md`](docs/agents/design_team_leader.md) | 디자인 팀장 시스템 프롬프트 |
 | [`docs/LINUX_CLAUDE_PROMPT.md`](docs/LINUX_CLAUDE_PROMPT.md) | Claude Code 초기 설정 프롬프트 |
 | [`docs/NAS_DEPLOYMENT.md`](docs/NAS_DEPLOYMENT.md) | NAS/홈랩 배포 |
 | [`docs/NAS_CLAUDE_QUESTIONNAIRE.md`](docs/NAS_CLAUDE_QUESTIONNAIRE.md) | NAS 환경 질문 리스트 |

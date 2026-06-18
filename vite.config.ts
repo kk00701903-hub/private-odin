@@ -245,9 +245,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'freya-icon.svg', 'odin-icon.svg', 'robots.txt'],
         manifest: {
-          name: '프레이야',
-          short_name: '프레이야',
-          description: '고양이가 이끄는 AI 마차 — 주인님의 AI 어시스턴트',
+          name: 'Odin',
+          short_name: 'Odin',
+          description: 'Odin — 프레이야 AI가 탑재된 홈랩 지휘 센터',
           theme_color: '#0B0D17',
           background_color: '#0B0D17',
           display: 'standalone',
@@ -258,13 +258,13 @@ export default defineConfig(({ mode }) => {
           categories: ['productivity', 'utilities'],
           icons: [
             {
-              src: 'freya-icon.svg',
+              src: 'odin-icon.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'any',
             },
             {
-              src: 'freya-icon.svg',
+              src: 'odin-icon.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'maskable',

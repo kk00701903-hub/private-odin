@@ -1,6 +1,6 @@
 // @section: sub-agents-types — AI 서브에이전트·금일 업무
 
-export type SubAgentCategory = 'infra' | 'planning' | 'development' | 'ops' | 'secretary' | string
+export type SubAgentCategory = 'infra' | 'planning' | 'development' | 'ops' | 'secretary' | 'design' | string
 
 export type AgentDutyStatus = 'pending' | 'in_progress' | 'completed'
 
@@ -35,4 +35,5 @@ export const AGENT_CATEGORY_LABELS: Record<string, string> = {
   development: '개발',
   ops: '운영',
   secretary: '비서실',
+  design: '디자인',
 }
