@@ -1,14 +1,16 @@
 // @section: odin-speech — Web Speech API TTS 엔진
 
-/** TTS용 텍스트 정제 (터미널 기호·이모지 제거) */
+/** TTS용 텍스트 정제 — 첫 단락만, 지정 기호([ ] * , - > ( ) .) 미발음 */
 export function sanitizeForSpeech(text: string): string {
-  return text
-    .replace(/[★☆⚠▲▼●◆■□▪▫]/g, '')
+  const firstParagraph = (text.split(/\n\s*\n/)[0] ?? text).trim()
+  if (!firstParagraph) return ''
+
+  return firstParagraph
     .replace(/\[.*?\]/g, '')
-    .replace(/^>+\s*/gm, '')
+    .replace(/[★☆⚠▲▼●◆■□▪▫]/g, '')
     .replace(/(?:ODIN|FREYA):\/\/\S+/gi, '')
-    .replace(/\n{2,}/g, '. ')
-    .replace(/\n/g, ', ')
+    .replace(/[\[\]*,>\-().]/g, '')
+    .replace(/\n+/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim()
 }
