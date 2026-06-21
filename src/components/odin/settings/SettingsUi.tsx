@@ -1,5 +1,7 @@
 // @section: settings-ui — iOS/Material 스타일 설정 공통 UI
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 
 const GROUP_SHELL =
   'rounded-2xl overflow-hidden border border-white/[0.14] bg-[rgba(18,22,38,0.82)] backdrop-blur-xl'
@@ -18,6 +20,68 @@ export function SettingsGroup({ title, children, footer }: SettingsGroupProps) {
       </h2>
       <div className={GROUP_SHELL}>
         <div className="divide-y divide-white/[0.05]">{children}</div>
+      </div>
+      {footer && (
+        <p className="px-1 mt-1.5 text-[12px] font-sans text-white/28 leading-relaxed">{footer}</p>
+      )}
+    </section>
+  )
+}
+
+interface SettingsCollapsibleGroupProps {
+  title: string
+  /** 접힌 상태 헤더 부제 */
+  summary?: string
+  defaultOpen?: boolean
+  footer?: string
+  /** 헤더 우측 뱃지 (연동 상태 등) */
+  badge?: ReactNode
+  children: ReactNode
+}
+
+export function SettingsCollapsibleGroup({
+  title,
+  summary,
+  defaultOpen = false,
+  footer,
+  badge,
+  children,
+}: SettingsCollapsibleGroupProps) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <section>
+      <div className={GROUP_SHELL}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="w-full flex items-center gap-3 px-4 min-h-[52px] text-left active:bg-white/[0.03] transition-colors"
+        >
+          <div className="flex-1 min-w-0 py-2.5">
+            <p className="text-[16px] font-sans text-white/85 leading-tight">{title}</p>
+            {summary && (
+              <p className="text-[13px] font-sans text-white/35 mt-0.5 leading-snug">{summary}</p>
+            )}
+          </div>
+          {badge}
+          <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+            <ChevronDown className="w-4 h-4 text-white/30 flex-shrink-0" />
+          </motion.div>
+        </button>
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="overflow-hidden border-t border-white/[0.06]"
+            >
+              <div className="divide-y divide-white/[0.05]">{children}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       {footer && (
         <p className="px-1 mt-1.5 text-[12px] font-sans text-white/28 leading-relaxed">{footer}</p>

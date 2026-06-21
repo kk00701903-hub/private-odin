@@ -1,10 +1,11 @@
-// @section: settings-sub-agents — 서브에이전트 목록 (설정 그룹 내부)
+// @section: settings-sub-agents — 에이전트 현황 (접이식 그룹)
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bot, ChevronDown, Loader2 } from 'lucide-react'
 import { useSubAgents } from '@/hooks/useSubAgents'
 import { AGENT_CATEGORY_LABELS } from '@/types/subAgents'
 import { AI_PALETTE } from '@/lib/odinTheme'
+import { SettingsCollapsibleGroup } from '@/components/odin/settings/SettingsUi'
 
 const CATEGORY_COLORS: Record<string, string> = {
   infra: AI_PALETTE.cyan,
@@ -79,40 +80,65 @@ function AgentRow({
   )
 }
 
-export function SettingsSubAgentsRows() {
-  const { agents, dutyGroups, loading, fromServer } = useSubAgents()
+function SettingsSubAgentsList() {
+  const { agents, dutyGroups, loading } = useSubAgents()
   const dutyCountByAgent = new Map(dutyGroups.map((g) => [g.agent.id, g.duties.length]))
+
+  if (loading && agents.length === 0) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-6 text-white/30">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span className="text-[14px] font-sans">불러오는 중…</span>
+      </div>
+    )
+  }
 
   return (
     <>
-      <div className="px-4 py-2 border-b border-white/[0.06]">
-        <span
-          className="text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-          style={{
-            background: fromServer ? `${AI_PALETTE.emerald}15` : 'rgba(255,255,255,0.06)',
-            color: fromServer ? AI_PALETTE.emerald : 'rgba(255,255,255,0.35)',
-          }}
-        >
-          {fromServer ? '서버 연동' : '오프라인 · 로컬 목록'}
-        </span>
-      </div>
-      {loading && agents.length === 0 ? (
-        <div className="flex items-center justify-center gap-2 py-6 text-white/30">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-[14px] font-sans">불러오는 중…</span>
-        </div>
-      ) : (
-        agents.map((agent) => (
-          <AgentRow
-            key={agent.id}
-            id={agent.id}
-            name={agent.name}
-            category={agent.category}
-            description={agent.description}
-            dutyCount={dutyCountByAgent.get(agent.id) ?? 0}
-          />
-        ))
-      )}
+      {agents.map((agent) => (
+        <AgentRow
+          key={agent.id}
+          id={agent.id}
+          name={agent.name}
+          category={agent.category}
+          description={agent.description}
+          dutyCount={dutyCountByAgent.get(agent.id) ?? 0}
+        />
+      ))}
     </>
+  )
+}
+
+/** 설정 탭 — 에이전트 현황 (기본 접힘) */
+export function SettingsSubAgentsGroup() {
+  const { agents, fromServer } = useSubAgents()
+
+  const summary =
+    agents.length > 0
+      ? `${agents.length}명 · ${fromServer ? '서버 연동' : '오프라인'}`
+      : '팀장 에이전트 목록'
+
+  const badge = (
+    <span
+      className="text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded flex-shrink-0"
+      style={{
+        background: fromServer ? `${AI_PALETTE.emerald}15` : 'rgba(255,255,255,0.06)',
+        color: fromServer ? AI_PALETTE.emerald : 'rgba(255,255,255,0.35)',
+      }}
+    >
+      {fromServer ? 'ONLINE' : 'LOCAL'}
+    </span>
+  )
+
+  return (
+    <SettingsCollapsibleGroup
+      title="에이전트 현황"
+      summary={summary}
+      defaultOpen={false}
+      badge={badge}
+      footer="LangGraph · Claude Code / Qwen / 디자인 팀장(서버 PC). 펼치면 각 팀장 상태를 확인할 수 있습니다."
+    >
+      <SettingsSubAgentsList />
+    </SettingsCollapsibleGroup>
   )
 }

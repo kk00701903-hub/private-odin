@@ -15,7 +15,7 @@ import {
   SettingsToggle,
 } from '@/components/odin/settings/SettingsUi'
 import { SettingsManualGroup } from '@/components/odin/settings/SettingsManual'
-import { SettingsSubAgentsRows } from '@/components/odin/settings/SettingsSubAgents'
+import { SettingsSubAgentsGroup } from '@/components/odin/settings/SettingsSubAgents'
 import { SettingsNasWakeRow } from '@/components/odin/settings/SettingsNasWake'
 
 const CYAN = AI_PALETTE.cyan
@@ -120,10 +120,11 @@ export default function SettingsView() {
           />
         </SettingsGroup>
 
-        <SettingsGroup title="인프라" footer="LangGraph · Claude Code / Qwen / 디자인 팀장(서버 PC)">
+        <SettingsGroup title="인프라" footer="Wake-on-LAN으로 원격 PC를 켭니다.">
           <SettingsNasWakeRow />
-          <SettingsSubAgentsRows />
         </SettingsGroup>
+
+        <SettingsSubAgentsGroup />
 
         <SettingsGroup title="도움말" footer="Linux PC 배포·VM 접속·Claude Code 운영 가이드">
           <SettingsManualGroup />
